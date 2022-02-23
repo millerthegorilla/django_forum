@@ -2,7 +2,7 @@ import html, logging, uuid
 
 import bleach
 
-from django_q import tasks, async_task
+from django_q import tasks
 
 from django import http, shortcuts, urls, views, utils, conf
 from django.apps import apps
@@ -236,7 +236,7 @@ class ReportComment(auth.mixins.LoginRequiredMixin, views.View):
         if comment.author != request.user:
             comment.moderation_date = utils.timezone.now()
             comment.save(update_fields=['moderation_date'])
-            async_task('django_forum.tasks.send_mod_mail', type='Comment')
+            tasks.async_task('django_forum.tasks.send_mod_mail', type='Comment')
         return shortcuts.redirect(urls.reverse_lazy(self.a_name + ':post_view',
                                                     args=[post.id, post.slug])
                                                     + '#' + comment.slug)
@@ -253,6 +253,6 @@ class ReportPost(auth.mixins.LoginRequiredMixin, views.View):
         if post.author != request.user:
             post.moderation_date = utils.timezone.now()
             post.save(update_fields=['moderation_date'])
-            async_task('django_forum.tasks.send_mod_mail','Post')
+            tasks.async_task('django_forum.tasks.send_mod_mail','Post')
         return shortcuts.redirect(urls.reverse_lazy(self.a_name + ':post_view',
                                                     args=[post.id, post.slug]))
