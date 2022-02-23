@@ -1,0 +1,3 @@
+git+https://github.com/millerthegorilla/django_profile.git#egg=django_profile
+git+https://github.com/millerthegorilla/django_messages.git#egg=django_messages
+git+https://github.com/millerthegorilla/safe_imagefield.git#egg=safe_imagefield

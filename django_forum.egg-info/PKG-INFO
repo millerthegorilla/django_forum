@@ -1,0 +1,172 @@
+Metadata-Version: 2.1
+Name: django-forum
+Version: 1.0
+Summary: A Django app that extends the django_messages app, and adds a functional forum with moderateable posts and comments.
+Home-page: https://github.com/millerthegorilla/django_profile
+Author: James Miller
+Author-email: jamesstewartmiller@gmail.com
+License: MiT  # Example license
+Platform: UNKNOWN
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Framework :: Django :: 3.2.9 # Replace "X.Y" as appropriate
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Requires-Python: >=3.8
+Description-Content-Type: 'text/markdown'
+License-File: LICENSE
+
+# django_forum
+a django app that provides basic forum functionality, either to be used on its own or as a foundation for other apps.  It extends the app [django_messages](https://github.com/millerthegorilla/django_messages) adds two models, Post and Comment, that extend from the Message model.  Posts and Comments are soft deleted before being hard deleted at a time later that is set in settings.  Layout in the app is according to bootstrap5 crispy-forms, and users can delete their own posts or comments, and can report others posts or comments for moderation.  Django_forum also subclasses the model from django_profile, where django_profile is set to abstract (which prevents an extra table in the database), and adds profile functionality, most of which is overridden.
+
+## install
+pip install git+https://github.com/millerthegorilla/django_forum.git#egg=django_forum
+add django_profile to your installed apps.
+```python
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    ...
+    'django_forum',
+]
+```
+## settings
+You will need to set the site domain in the admin app, and also the settings.BASE_HTML for the statement `{% extends BASE_HTML %}` in the templates where BASE_HTML comes from the context_processor.
+
+Post and Comments extend the message model which itself extends soft deletion model, so when either a post or a comment is deleted, it has a field set to true that reflects that it is deleted, and a schedule is created using django_q that then deletes the Post or Comment at a timedelta later.
+```
+DELETION_TIMEOUT = {
+        'POST':timezone.timedelta(days=21),
+        'COMMENT':timezone.timedelta(days=14)
+}
+```
+When a comment is created, an email is sent to subscribed users to inform them of the new comment.  This email is delayed from being sent, in case the user deletes the comment immediately, and so when the email schedule fires, the existence of the comment is checked.
+```
+# the amount of time to wait before emails are sent to subscribed users
+COMMENT_WAIT = timezone.timedelta(seconds=600)
+
+# msg sent to subscribed users
+# the msg must include one pair of brackets, which will contain
+# the href of the post
+SUBSCRIBED_MSG = "<h3 style='color: blue;'>Ceramic Isles</h3><br>A new comment has been added to a post that you are subscribed to!<br>Follow this link to view the post and comments: {}"
+```
+django_q has the following settings:
+```
+Q_CLUSTER = {
+    'name': 'DJRedis',
+    'workers': 4,
+    'timeout': 20,
+    'retry': 60,
+    'django_redis': 'default'
+}
+```
+with redis used as a cache:
+```
+CACHES = {
+     "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+```
+bleach is used to sanitize text in the message class underlying the Post and Comments.
+```
+ALLOWED_TAGS = [
+    'a', 'div', 'p', 'span', 'img', 'iframe', 'em', 'i', 'li', 'ol', 'ul', 'strong', 'br',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'table', 'tbody', 'thead', 'tr', 'td',
+    'abbr', 'acronym', 'b', 'blockquote', 'code', 'strike', 'u', 'sup', 'sub',
+]
+
+STYLES = [
+    'background-color', 'font-size', 'line-height', 'color', 'font-family'
+]
+
+ATTRIBUTES = {
+    '*': ['style', 'align', 'title', ],
+    'a': ['href', ],
+    'iframe': ['src', 'height', 'width', 'allowfullscreen'],
+}
+```
+TinyMCE is used to provide the editor for Posts...
+```
+TINYMCE_DEFAULT_CONFIG = {
+    "menubar": False,
+    "min-height": "500px",
+    "browser_spellcheck": True,
+    "contextmenu": False,
+    "plugins": "advlist autolink lists link image charmap print preview anchor searchreplace fullscreen insertdatetime media table paste code help wordcount spellchecker",
+    "toolbar": "undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist checklist | forecolor backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons | fullscreen  preview save print | insertfile image media template link anchor | a11ycheck ltr rtl | showcomments addcomment table",
+    "custom_undo_redo_levels": 10,
+    "selector": 'textarea',
+}
+
+```
+ElasticSearch is used to search the text of Posts and Comments.
+```
+ELASTICSEARCH_DSL={
+    'default': {
+        'hosts': 'localhost:9200'
+    },
+}
+```
+Crispy-forms bootstrap5 has some settings...
+```
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+```
+You will also need recaptcha settings, which are part of django_profile.
+```
+## RECAPTCHA SETTINGS
+RECAPTCHA_PUBLIC_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+RECAPTCHA_PRIVATE_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+```
+The keys shown here are the test keys that allow you to use the recaptcha in your development setup.  The silenced system check simply silences the warning that is displayed that says that the recaptcha keys are the test keys.
+
+sorl-thumbnail is used for the avatar image, which defaults randomly to one of the default_avatars in the /media/default_avatars folder.  The default avatars should be numbered in the filename, as follows:
+```
+default_avatar_n.jpg     # where n is a number from one to x.
+```
+
+Safe_imagefield is an app by moi, to validate images in a number of ways, including a virus scan.
+```
+# safe imagefield
+CLAMAV_SOCKET = str(os.getenv("CLAMAV_ADDRESS"))
+```
+Finally, you can make the apps models abstract if you are subclassing them in another app.
+```
+ABSTRACTPOST = True
+ABSTRACTCOMMENT = False
+```
+
+
+## dependencies
+git+https://github.com/millerthegorilla/django_profile.git#egg=django_profile
+git+https://github.com/millerthegorilla/django_messages.git#egg=django_messages
+git+https://github.com/millerthegorilla/safe_imagefield.git#egg=safe_imagefield
+django-crispy-forms==1.11.2
+crispy-bootstrap==5.0.6
+elasticsearch==7.12.0
+elasticsearch-dsl==7.3.0
+django-elasticsearch-dsl==7.1.4
+django-tinymce==3.3.0
+django-q==1.3.8
+fuzzywuzzy==0.18.0
+django-recaptcha==2.0.6
+random_username==1.0.2
+sorl-thumbnail==12.7.0
+
+
