@@ -157,9 +157,10 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.View):
                 new_comment.post_fk = post
                 new_comment.save()
                 sname: str = "subscribe_timeout" + str(uuid.uuid4())
+                breakpoint()
                 tasks.schedule('django_forum.tasks.send_subscribed_email',
-                             post_model=Type[self.post_model],
-                             comment_model=Type[self.comment_model],
+                             self.post_model._meta.app_label + '.' + self.post_model._meta.object_name,
+                             self.comment_model._meta.app_label + '.' + self.comment_model._meta.object_name,
                              name=sname,
                              schedule_type="O",
                              repeats=-1,
