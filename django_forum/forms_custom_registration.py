@@ -7,6 +7,8 @@ from fuzzywuzzy import fuzz
 
 from django.contrib import auth
 from django import forms
+from django.core import exceptions
+from django.forms.fields import EmailField
 from django.urls import reverse_lazy
 from django.template import defaultfilters
 
@@ -40,9 +42,7 @@ class CustomUserCreation(auth.forms.UserCreationForm):
     def clean_display_name(self) -> str:
         displayname = self.cleaned_data['display_name']
         dname = defaultfilters.slugify(displayname)
-        try:
-            self.model.objects.get(display_name=dname)
-        except self.model.DoesNotExist:
+        if not self.model.objects.filter(display_name=dname).exists():
             return displayname
         self.add_error(
             'display_name', 'Error! That display name already exists!')
@@ -51,12 +51,9 @@ class CustomUserCreation(auth.forms.UserCreationForm):
 
     def clean_email(self) -> str:
         email = self.cleaned_data['email']
-        try:
-            auth.models.User.objects.get(email=email)
-        except auth.models.User.DoesNotExist:
-            return email
-        self.add_error('email', 'Error! That email already exists!')
-        self.valid = False
+        if auth.get_user_model().objects.filter(email=email).exists():
+            self.add_error('email', 'Error! That email already exists!')
+            self.valid = False
         return email
 
     def __init__(self, *args, **kwargs) -> None:

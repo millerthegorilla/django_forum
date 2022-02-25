@@ -144,12 +144,11 @@ class ForumProfile(profile_views.ProfileUpdate):
     template_name = 'django_forum/profile/forum_profile_update_form.html'
 
     def form_valid(self, form: forms.ModelForm) -> typing.Union[http.HttpResponse, http.HttpResponseRedirect]: # type: ignore
-    # mypy can't handle inheritance properly, and grumbles about a missing return statement
         if self.request.POST['type'] == 'update-profile':
             user_form = self.user_form_class(self.request.POST)
             if form.has_changed() or user_form.has_changed():
                 obj = form.save(commit=False)
-                if user_form.has_changed():  ## horridly hacky
+                if user_form.has_changed():
                     obj.display_name = defaultfilters.slugify(user_form['display_name'].value())
                 obj.save()
                 form.save()

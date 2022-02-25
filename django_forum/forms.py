@@ -24,27 +24,28 @@ from . import models as forum_models
 class ForumProfileUser(profile_forms.UserProfile):
     model = forum_models.ForumProfile
 
-    class Meta(profile_forms.UserProfile.Meta):
-        fields = profile_forms.UserProfile.Meta.fields
+   # class Meta(profile_forms.UserProfile.Meta):
+        #fields = profile_forms.UserProfile.Meta.fields
         #model = profile_forms.UserProfile.Meta.model
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if len(args):   # TODO review this...
-            initl = args[0].get('display_name')
-        else:
+        # I want the field 'display_name' to be placed above the user fields
+        # TODO migrate display_name to django_artisan...?
+        initl = ""
+        if len(kwargs) and kwargs['username']:
             initl = self.model.objects.get(
-                profile_user__username=kwargs['initial']['username']).display_name
+                 profile_user__username=kwargs['username']).display_name
+            kwargs = {}
+        super().__init__(*args, **kwargs)
         self.fields['display_name'] = forms.CharField(
             help_text='<span class="tinfo">Your display name is used in the forum, and to make \
                         your personal page address.  Try your first name and last name, \
                         or use your business name.  It *must* be different to your username.  It will be \
                         converted to an internet friendly name when you save it.</span>', initial=initl)
-        self.helper.form_tag = False
         self.helper.layout = layout.Layout(
             bootstrap5.FloatingField('display_name'),
             self.helper.layout)
-
+        self.helper.form_tag = False
 
 class ForumProfile(profile_forms.Profile):
     class Meta(profile_forms.Profile.Meta):
@@ -61,7 +62,6 @@ class ForumProfile(profile_forms.Profile):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.helper = helper.FormHelper()
-        self.helper.form_tag = False
         self.helper.layout = layout.Layout(
             layout.HTML('<span class="tinfo">Address details are only necessary if there is going to be mail for users</span>'),
             layout.HTML('<a class="btn btn-primary mb-3 ms-3" data-bs-toggle="collapse" \
@@ -79,6 +79,7 @@ class ForumProfile(profile_forms.Profile):
         self.helper.form_id = 'id-profile-form'
         self.helper.form_method = 'post'
         self.helper.form_class = 'col-auto'
+        self.helper.form_tag = False
 
 
 # ENDPROFILE
