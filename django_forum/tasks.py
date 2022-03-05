@@ -14,10 +14,11 @@ logger = logging.getLogger('django_artisan')
 
 def send_subscribed_email(post_mdl: str,
                           comment_mdl: str,
-                          post_id: int = None, 
-                          comment_id: int = None, 
-                          path_info: str = None,
-                          s_name: str = None) -> str:
+                          post_id: int, 
+                          comment_id: int, 
+                          path: str,
+                          protocol: str,
+                          s_name:str) -> str:
     post = comment = None
     post_model = apps.get_model(*post_mdl.split('.'))
     comment_model = apps.get_model(*comment_mdl.split('.'))
@@ -31,9 +32,9 @@ def send_subscribed_email(post_mdl: str,
 
     if post and comment:
         if post.subscribed_users.exists():
-            href = "{0}://{1}{2}#{3}".format('https',
-                                             site_models.Site.objects.get_current().domain,
-                                             path_info,
+            href = "{0}://{1}{2}#{3}".format(protocol,
+                                             conf.settings.SITE_DOMAIN,
+                                             path,
                                              comment.slug)
 
             email = mail.EmailMessage(

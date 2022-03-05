@@ -134,6 +134,17 @@ class PostList(mixins.LoginRequiredMixin, messages_views.MessageList):
 
 
 # START PROFILE
+
+class UpdateAvatar(mixins.LoginRequiredMixin, generic.edit.UpdateView):
+    model = forum_models.ForumProfile
+    
+    def post(self, request: http.HttpRequest):
+        fp = self.model.objects.get(profile_user=request.user)
+        fp.avatar.image_file.save(
+            request.FILES['avatar'].name,
+            request.FILES['avatar'])
+        return shortcuts.redirect(self.success_url)
+
 @utils.decorators.method_decorator(cache.never_cache, name='dispatch')
 class ForumProfile(profile_views.ProfileUpdate):
     model = forum_models.ForumProfile
@@ -143,25 +154,76 @@ class ForumProfile(profile_views.ProfileUpdate):
     success_url = urls.reverse_lazy('django_forum:profile_update_view')
     template_name = 'django_forum/profile/forum_profile_update_form.html'
 
-    def form_valid(self, form: forms.ModelForm) -> typing.Union[http.HttpResponse, http.HttpResponseRedirect]: # type: ignore
-        if self.request.POST['type'] == 'update-profile':
-            user_form = self.user_form_class(self.request.POST)
-            if form.has_changed() or user_form.has_changed():
-                obj = form.save(commit=False)
-                if user_form.has_changed():
-                    obj.display_name = defaultfilters.slugify(user_form['display_name'].value())
-                obj.save()
-                form.save()
-            return super().form_valid(form)  # process other form in django_profile app
-        elif self.request.POST['type'] == 'update-avatar':
-            fp = self.model.objects.get(profile_user=self.request.user)
-            fp.avatar.image_file.save(
-                self.request.FILES['avatar'].name,
-                self.request.FILES['avatar'])
-            return shortcuts.redirect(self.success_url)
+    def populate_initial(self, user):
+        super_dic = super().populate_initial(user) 
+        dic = { 
+                'address_line_1': user.profile.address_line_1,
+                'address_line_2': user.profile.address_line_2,
+                'city': user.profile.city,
+                'country': user.profile.country,
+                'postcode': user.profile.postcode,
+                'avatar': user.profile.avatar,
+                'rules_agreed': user.profile.rules_agreed,
+                'display_name': user.profile.display_name
+            }
+        dic.update(super_dic)
+        return dic
 
-    def get_context_data(self, **args) -> dict:
-        context = super().get_context_data(**args)
+    def post(self, request:http.HttpRequest):
+        form = self.form_class(request.POST)
+        user_form = self.user_form_class(request.POST)
+        f_valid = False
+        u_valid = False
+        context = {}
+
+        profile = self.model.objects.get(profile_user=request.user)
+
+        if form.is_valid():
+            self.f_valid = True
+            form.initial.update(self.populate_initial(request.user))
+            if form.has_changed():
+                for change in form.changed_data:
+                    setattr(profile,change,form[change].value())
+            profile.save(update_fields=form.changed_data)
+        else:
+            self.f_valid = False
+        user_form.is_valid()
+        try:
+            user_form.errors.pop('username')
+        except KeyError:
+            pass
+        if len(user_form.errors):
+            self.u_valid = False
+        else:
+            self.u_valid = True
+            user = auth.get_user_model().objects.get(username=user_form['username'].value())
+            for change in user_form.changed_data:
+                setattr(user,change,user_form[change].value())
+            user.save(update_fields=user_form.changed_data)
+        
+        if not self.f_valid or not self.u_valid:  
+            return shortcuts.render(request, self.template_name, self.get_context_data())
+        else:
+            return super().post(request)
+    # def form_valid(self, form: forms.ModelForm) -> typing.Union[http.HttpResponse, http.HttpResponseRedirect]: # type: ignore
+    #     #if self.request.POST['type'] == 'update-profile':
+    #         user_form = self.user_form_class(self.request.POST)
+    #         if form.has_changed() or user_form.has_changed():
+    #             obj = form.save(commit=False)
+    #             if user_form.has_changed():
+    #                 obj.display_name = defaultfilters.slugify(user_form['display_name'].value())
+    #             obj.save()
+    #             form.save()
+    #         return super().form_valid(form)  # process other form in django_profile app
+        # elif self.request.POST['type'] == 'update-avatar':
+        #     fp = self.model.objects.get(profile_user=self.request.user)
+        #     fp.avatar.image_file.save(
+        #         self.request.FILES['avatar'].name,
+        #         self.request.FILES['avatar'])
+        #     return shortcuts.redirect(self.success_url)
+
+    def get_context_data(self, *args, **kwargs) -> dict:
+        context = super().get_context_data(*args, **kwargs)
         context['avatar'] = self.model.objects.get(
             profile_user=self.request.user).avatar
         queryset = (self.post_model.objects.select_related('author')

@@ -157,7 +157,9 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.View):
                 new_comment.post_fk = post
                 new_comment.save()
                 sname: str = "subscribe_timeout" + str(uuid.uuid4())
+                path:str = "/forum/{}/{}".format(self.kwargs['pk'], self.kwargs['slug'])
                 breakpoint()
+                protocol = 'https' if self.request.is_secure() else 'http'
                 tasks.schedule('django_forum.tasks.send_subscribed_email',
                              self.post_model._meta.app_label + '.' + self.post_model._meta.object_name,
                              self.comment_model._meta.app_label + '.' + self.comment_model._meta.object_name,
@@ -167,8 +169,9 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.View):
                              next_run=utils.timezone.now() + conf.settings.COMMENT_WAIT,
                              post_id=post.id,
                              comment_id=new_comment.id,
-                             s_name=sname,
-                             path_info=self.request.path_info)
+                             path=path,
+                             protocol=protocol,
+                             s_name=sname)
                 return shortcuts.redirect(new_comment, permanent=True)
             else:
                 site = site_models.Site.objects.get_current()

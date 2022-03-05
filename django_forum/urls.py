@@ -32,6 +32,8 @@ urlpatterns = [
                 name='post_list_view'),
     urls.path('profile/', forum_views.ForumProfile.as_view(),
          name='profile_update_view'),
+    urls.path('update_avatar/', forum_views.UpdateAvatar.as_view(),
+         name='update_avatar'),
     urls.path('rules/', forum_views.RulesPageView.as_view(), name='rules_view'),
     urls.path('register/', forum_views.CustomRegister.as_view(), name='register'),
     # path('autocomplete/', autocomplete, name='autocomplete')  # experimental

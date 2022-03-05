@@ -6,7 +6,8 @@ from crispy_bootstrap5 import bootstrap5
 from tinymce.widgets import TinyMCE
 
 from django import forms, utils
-from django.contrib.auth.models import User
+from django.contrib import auth
+
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
@@ -22,21 +23,21 @@ from . import models as forum_models
 
 # this class is here to provide the user's forum profile 
 class ForumProfileUser(profile_forms.UserProfile):
-    model = forum_models.ForumProfile
+    #model = get_user_model()
 
-   # class Meta(profile_forms.UserProfile.Meta):
-        #fields = profile_forms.UserProfile.Meta.fields
-        #model = profile_forms.UserProfile.Meta.model
+    class Meta(profile_forms.UserProfile.Meta):
+        model = profile_forms.UserProfile.Meta.model
+        exclude = profile_forms.UserProfile.Meta.exclude
 
     def __init__(self, *args, **kwargs) -> None:
         # I want the field 'display_name' to be placed above the user fields
         # TODO migrate display_name to django_artisan...?
-        initl = ""
-        if len(kwargs) and kwargs['username']:
-            initl = self.model.objects.get(
-                 profile_user__username=kwargs['username']).display_name
-            kwargs = {}
         super().__init__(*args, **kwargs)
+        breakpoint()
+        try:
+            initl = self.Meta.model.objects.get(username=self['username'].value()).profile.display_name
+        except self.Meta.model.DoesNotExist:
+            initl = ""
         self.fields['display_name'] = forms.CharField(
             help_text='<span class="tinfo">Your display name is used in the forum, and to make \
                         your personal page address.  Try your first name and last name, \
