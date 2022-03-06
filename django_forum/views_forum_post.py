@@ -158,7 +158,6 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.View):
                 new_comment.save()
                 sname: str = "subscribe_timeout" + str(uuid.uuid4())
                 path:str = "/forum/{}/{}".format(self.kwargs['pk'], self.kwargs['slug'])
-                breakpoint()
                 protocol = 'https' if self.request.is_secure() else 'http'
                 tasks.schedule('django_forum.tasks.send_subscribed_email',
                              self.post_model._meta.app_label + '.' + self.post_model._meta.object_name,

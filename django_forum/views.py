@@ -154,8 +154,7 @@ class ForumProfile(profile_views.ProfileUpdate):
     success_url = urls.reverse_lazy('django_forum:profile_update_view')
     template_name = 'django_forum/profile/forum_profile_update_form.html'
 
-    def populate_initial(self, user):
-        super_dic = super().populate_initial(user) 
+    def populate_initial_form(self, user):
         dic = { 
                 'address_line_1': user.profile.address_line_1,
                 'address_line_2': user.profile.address_line_2,
@@ -166,7 +165,6 @@ class ForumProfile(profile_views.ProfileUpdate):
                 'rules_agreed': user.profile.rules_agreed,
                 'display_name': user.profile.display_name
             }
-        dic.update(super_dic)
         return dic
 
     def post(self, request:http.HttpRequest):
@@ -180,13 +178,15 @@ class ForumProfile(profile_views.ProfileUpdate):
 
         if form.is_valid():
             self.f_valid = True
-            form.initial.update(self.populate_initial(request.user))
+            form.initial.update(self.populate_initial_form(request.user))
             if form.has_changed():
                 for change in form.changed_data:
                     setattr(profile,change,form[change].value())
             profile.save(update_fields=form.changed_data)
         else:
             self.f_valid = False
+
+        user_form.initial.update(self.populate_initial_user_form(request.user))
         user_form.is_valid()
         try:
             user_form.errors.pop('username')
@@ -198,10 +198,17 @@ class ForumProfile(profile_views.ProfileUpdate):
             self.u_valid = True
             user = auth.get_user_model().objects.get(username=user_form['username'].value())
             for change in user_form.changed_data:
+                if change == 'display_name':
+                    profile.display_name = user_form[change].value()
+                    profile.save(update_fields=['display_name'])
+                    user_form.changed_data.pop(user_form.changed_data.index('display_name'))
                 setattr(user,change,user_form[change].value())
             user.save(update_fields=user_form.changed_data)
         
-        if not self.f_valid or not self.u_valid:  
+        if not self.f_valid or not self.u_valid:
+            context = self.get_context_data()
+            context['form'] = form
+            context['user_form'] = user_form
             return shortcuts.render(request, self.template_name, self.get_context_data())
         else:
             return super().post(request)

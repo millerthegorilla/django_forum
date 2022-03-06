@@ -33,7 +33,6 @@ class ForumProfileUser(profile_forms.UserProfile):
         # I want the field 'display_name' to be placed above the user fields
         # TODO migrate display_name to django_artisan...?
         super().__init__(*args, **kwargs)
-        breakpoint()
         try:
             initl = self.Meta.model.objects.get(username=self['username'].value()).profile.display_name
         except self.Meta.model.DoesNotExist:
