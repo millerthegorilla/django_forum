@@ -81,9 +81,12 @@ class PostList(mixins.LoginRequiredMixin, messages_views.MessageList):
             queryset = forum_documents.Post.search().query(
                 elasticsearch_dsl.Q(t, text=terms) |
                 elasticsearch_dsl.Q(t, author=terms) |
-                elasticsearch_dsl.Q(t, title=terms) |
-                elasticsearch_dsl.Q(t, category=terms) |
-                elasticsearch_dsl.Q(t, location=terms)).to_queryset()
+                elasticsearch_dsl.Q(t, title=terms)).to_queryset()
+            queryset_comments = forum_documents.Comment.search().query(
+                elasticsearch_dsl.Q(t, text=terms) |
+                elasticsearch_dsl.Q(t, author=terms)).to_queryset()
+            for sr in queryset_comments:
+                queryset = queryset | self.model.objects.filter(id=sr.post_fk.id)
             time_range = eval('form.' + form['published'].value())  #### TODO !!! eval is evil.  
             search = len(queryset)
             if search and time_range:
@@ -94,16 +97,16 @@ class PostList(mixins.LoginRequiredMixin, messages_views.MessageList):
                                    .select_related('author__profile__avatar'))
                 search = len(queryset)
             if not search:
-                queryset = (forum_models.Post.objects.order_by('-pinned')
-                                                    .select_related('author')
-                                                    .select_related('author__profile')
-                                                    .select_related('author__profile__avatar'))
+                queryset = (self.model.objects.order_by('-pinned')
+                                              .select_related('author')
+                                              .select_related('author__profile')
+                                              .select_related('author__profile__avatar'))
         else:
             form.errors.clear()
-            queryset = (forum_models.Post.objects.order_by('-pinned')
-                                                .select_related('author')
-                                                .select_related('author__profile')
-                                                .select_related('author__profile__avatar'))        
+            queryset = (self.model.objects.order_by('-pinned')
+                                          .select_related('author')
+                                          .select_related('author__profile')
+                                          .select_related('author__profile__avatar'))        
         paginator = pagination.Paginator(queryset, self.paginate_by)
          
         page_number = request.GET.get('page')

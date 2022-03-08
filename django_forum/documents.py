@@ -32,7 +32,7 @@ if not abstract:
     @registry.register_document
     class Comment(django_elasticsearch_dsl.Document):
 
-        author_name = django_elasticsearch_dsl.fields.TextField(attr="get_author_name")
+        author = django_elasticsearch_dsl.fields.TextField(attr="get_author_name")
 
         text = django_elasticsearch_dsl.fields.TextField(
             attr='text',
@@ -73,7 +73,7 @@ if not abstract:
     @registry.register_document
     class Post(django_elasticsearch_dsl.Document):
 
-        author_name = django_elasticsearch_dsl.fields.TextField(attr="get_author_name")
+        author = django_elasticsearch_dsl.fields.TextField(attr="get_author_name")
 
         text = django_elasticsearch_dsl.fields.TextField(
             attr='text',
