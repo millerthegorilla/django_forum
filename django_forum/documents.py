@@ -1,4 +1,6 @@
 import elasticsearch_dsl
+from elasticsearch_dsl import Document, Date, Nested, Boolean, \
+    analyzer, InnerDoc, Completion, Keyword, Text
 import django_elasticsearch_dsl
 from django_elasticsearch_dsl.registries import registry
 
@@ -51,15 +53,15 @@ if not abstract:
 
             model = forum_models.Comment
 
-            """
-              the commented code below allows searched comments to return a post as the 'found'
-              record.
-            """
-            # related_models = [Post]
+            # """
+            #   the commented code below allows searched comments to return a post as the 'found'
+            #   record.
+            # """
+            # related_models = [forum_models.Post]
 
             # def get_queryset(self):
             #     return super().get_queryset().select_related(
-            #         'forum_post'
+            #         'post'
             #     )
 
 
