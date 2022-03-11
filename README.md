@@ -3,7 +3,7 @@ a django app that provides basic forum functionality, either to be used on its o
 
 ## install
 pip install git+https://github.com/millerthegorilla/django_forum.git#egg=django_forum
-add django_profile to your installed apps.
+add django_forum to your installed apps.
 ```python
 INSTALLED_APPS = [
     'django.contrib.admin',

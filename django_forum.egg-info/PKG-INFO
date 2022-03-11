@@ -1,8 +1,8 @@
 Metadata-Version: 2.1
 Name: django-forum
 Version: 1.0
-Summary: A Django app that extends the django_messages app, and adds a functional forum with moderateable posts and comments.
-Home-page: https://github.com/millerthegorilla/django_profile
+Summary: "A Django app that extends the django_messages app, and adds a functional forum with moderateable posts and comments."
+Home-page: https://github.com/millerthegorilla/django_forum
 Author: James Miller
 Author-email: jamesstewartmiller@gmail.com
 License: MiT  # Example license
@@ -29,7 +29,7 @@ a django app that provides basic forum functionality, either to be used on its o
 
 ## install
 pip install git+https://github.com/millerthegorilla/django_forum.git#egg=django_forum
-add django_profile to your installed apps.
+add django_forum to your installed apps.
 ```python
 INSTALLED_APPS = [
     'django.contrib.admin',

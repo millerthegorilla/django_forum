@@ -46,8 +46,8 @@ django_forum/static/django_forum/js/autocomplete.js
 django_forum/static/django_forum/js/forum_post_detail.js
 django_forum/static/django_forum/js/postCreate.js
 django_forum/static/django_forum/js/profileUpdate.js
-django_forum/templates/based.html
 django_forum/templates/links.html
+django_forum/templates/django_forum/base.html
 django_forum/templates/django_forum/rules.html
 django_forum/templates/django_forum/posts_and_comments/comment.html
 django_forum/templates/django_forum/posts_and_comments/forum_post_create_form.html
