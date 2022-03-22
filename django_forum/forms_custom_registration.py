@@ -11,6 +11,7 @@ from django.core import exceptions
 from django.forms.fields import EmailField
 from django.urls import reverse_lazy
 from django.template import defaultfilters
+from django.utils.safestring import mark_safe
 
 from . import models as forum_models
 
@@ -59,20 +60,18 @@ class CustomUserCreation(auth.forms.UserCreationForm):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.fields['display_name'] = forms.fields.CharField(
-            label='Display name',)
-        #         help_text='<span class="tinfo">Your display name will be shown \
-        #                    in the forum and will be part of the link to your personal page.  \
-        #                    It must be *different* to your username. It must be unique.  \
-        #                    Perhaps use your first name and last name, or maybe your business name. \
-        #                    It will be converted to an internet friendly name when you save it. \
-        #                    You can change it later...</span>',
-        #     )
+            label='Display name',
+            help_text=mark_safe('<span class="tinfo">Your display name will be shown \
+                       in the forum and will be part of the link to your personal page.  \
+                       It must be *different* to your username. It must be unique.  \
+                       You can change it later...</span>'),
+        )
         self.fields['username'] = forms.fields.CharField(
             label='Username',
-            help_text='<span class="tinfo">Your username is used purely \
+            help_text=mark_safe('<span class="tinfo">Your username is used purely \
                            for logging in, and must be different to your display name. \
                            It must be unique. \
-                           No one will see your username. Letters, digits and @/./+/-/_ only.</span>',)
+                           No one will see your username. Letters, digits and @/./+/-/_ only.</span>'),)
         self.fields['password2'] = forms.fields.CharField(
             label='Password again!',
             widget=forms.PasswordInput,)
