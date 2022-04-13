@@ -8,11 +8,13 @@ from django_q import tasks
 from django import http, shortcuts, urls, views, utils, conf
 from django.apps import apps
 from django.core import mail
+from django.core.cache import cache as template_cache
+from django.core.cache.utils import make_template_fragment_key
 from django.contrib import auth
 from django.template import defaultfilters
 from django.db.models import F
 from django.views.decorators import cache
-from django.utils import timezone, decorators
+from django.utils import timezone, decorators, safestring
 from django.contrib.sites import models as site_models
 
 
@@ -42,7 +44,7 @@ def send_mod_mail(type: str) -> None:
 
 @utils.decorators.method_decorator(cache.never_cache, name='dispatch')
 @utils.decorators.method_decorator(cache.never_cache, name='get')
-class PostView(messages_views.MessageView):
+class PostView(auth.mixins.LoginRequiredMixin, messages_views.MessageView):
     """
         TODO: Replace superclass form processing if conditions with separate urls/views
               and overload them individually here, where necessary, instead of redefining
@@ -150,8 +152,8 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.View):
             if comment_form.is_valid():
                 new_comment = comment_form.save(commit=False)
                 new_comment.author = request.user
-                new_comment.text = bleach.clean(
-                    html.unescape(new_comment.text), strip=True)
+                new_comment.text = safestring.mark_safe(html.unescape(
+                                     bleach.clean(new_comment.text, strip=False)))
                 new_comment.slug = defaultfilters.slugify(new_comment.text[:4] + '_comment_' 
                                    + str(new_comment.created_at or utils.timezone.now()))
                 new_comment.post_fk = post
@@ -212,15 +214,17 @@ class UpdateComment(auth.mixins.LoginRequiredMixin, views.View):
     comment_model = forum_models.Comment
     post_model = forum_models.Post
     a_name = 'django_forum'
-    
+
     def post(self, request:http.HttpRequest) -> http.HttpResponseRedirect:
         comment = self.comment_model.objects.get(id=request.POST['comment-id'],
                                                  slug=request.POST['comment-slug'])
         post = self.post_model.objects.get(id=request.POST['post-id'], 
                                            slug=request.POST['post-slug'])
         if comment.author == request.user:
-            comment.text = request.POST['comment-text']
+            comment.text = request.POST['comment-text'].strip()
             comment.save(update_fields=['text'])
+            key = make_template_fragment_key("comment", [comment.id, comment.slug])
+            template_cache.delete(key)
         return shortcuts.redirect(urls.reverse_lazy(self.a_name + ':post_view',
                                                     args=[post.id, post.slug])
                                                     + '#' + comment.slug)

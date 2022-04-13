@@ -38,10 +38,10 @@ class ForumProfileUser(profile_forms.UserProfile):
         except self.Meta.model.DoesNotExist:
             initl = ""
         self.fields['display_name'] = forms.CharField(
-            help_text='<span class="tinfo">Your display name is used in the forum, and to make \
+            help_text='Your display name is used in the forum, and to make \
                         your personal page address.  Try your first name and last name, \
                         or use your business name.  It *must* be different to your username.  It will be \
-                        converted to an internet friendly name when you save it.</span>', initial=initl)
+                        converted to an internet friendly name when you save it.', initial=initl)
         self.helper.layout = layout.Layout(
             bootstrap5.FloatingField('display_name'),
             self.helper.layout)
@@ -119,6 +119,8 @@ class Post(messages_forms.Message):
 
 
 class Comment(messages_forms.Message):
+    text = forms.CharField(
+            widget=forms.TextInput(attrs={'autofocus': 'autofocus'}))
     class Meta:
         model = forum_models.Comment
         fields = messages_forms.Message.Meta.fields
@@ -189,7 +191,10 @@ class PostListSearch(forms.Form):
     )
 
     q = forms.CharField(label='Search Query')
-    published = forms.ChoiceField(choices=DATE_CHOICES, required=False, initial=DATE_ANY)
+    published = forms.ChoiceField(choices=DATE_CHOICES,
+                                  required=False,
+                                  initial=DATE_ANY)
     
     class Meta():
         fields = []
+        widgets = {'published': 'select'}

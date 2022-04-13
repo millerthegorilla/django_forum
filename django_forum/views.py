@@ -176,9 +176,7 @@ class ForumProfile(profile_views.ProfileUpdate):
         f_valid = False
         u_valid = False
         context = {}
-
         profile = self.model.objects.get(profile_user=request.user)
-
         if form.is_valid():
             self.f_valid = True
             form.initial.update(self.populate_initial_form(request.user))
