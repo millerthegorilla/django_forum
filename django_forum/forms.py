@@ -119,8 +119,8 @@ class Post(messages_forms.Message):
 
 
 class Comment(messages_forms.Message):
-    text = forms.CharField(
-            widget=forms.TextInput(attrs={'autofocus': 'autofocus'}))
+    # text = forms.CharField(
+    #         widget=forms.TextInput(attrs={'autofocus': 'autofocus'}))
     class Meta:
         model = forum_models.Comment
         fields = messages_forms.Message.Meta.fields
