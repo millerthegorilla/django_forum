@@ -72,9 +72,6 @@ class CustomUserCreation(auth.forms.UserCreationForm):
                            for logging in, and must be different to your display name. \
                            It must be unique. \
                            No one will see your username. Letters, digits and @/./+/-/_ only.</span>'),)
-        self.fields['password1'] = forms.fields.CharField(
-            label='Password...',
-            widget=forms.PasswordInput,)
         self.fields['password2'] = forms.fields.CharField(
             label='Password again!',
             widget=forms.PasswordInput,)
@@ -86,10 +83,11 @@ class CustomUserCreation(auth.forms.UserCreationForm):
         self.helper.form_tag = False
         self.helper.form_class = ""
         self.helper.layout = crispy_forms.layout.Layout(
-            bootstrap5.FloatingField('display_name', autofocus=''),
-            bootstrap5.FloatingField('email'),
-            bootstrap5.FloatingField('username', autocomplete="username"),
-            bootstrap5.FloatingField('password1', autocomplete="new-password"),
+            bootstrap5.FloatingField('display_name',
+                          autocomplete="new-password", autofocus=''),
+            bootstrap5.FloatingField('username'),
+            bootstrap5.FloatingField('email', autocomplete="new-password"),
+            bootstrap5.FloatingField('password1'),
             bootstrap5.FloatingField('password2', autocomplete="new-password"),
             crispy_forms.layout.Field('rules', css_class="mb-3"),
             crispy_forms.layout.Field('captcha'),

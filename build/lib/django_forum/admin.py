@@ -92,7 +92,7 @@ class Post(soft_deletion.Admin):
                    'created_at', 'author', 'deleted_at')
     search_fields = ('author', 'text', 'title')
 
-    actions = ['approve_post', 'lock_commenting', 'unlock_commenting', 'unpin_post', 'pin_post']
+    actions = ['approve_post', 'lock_commenting', 'unlock_commenting', 'unpin_post']
 
     def approve_post(self, request: http.HttpRequest,
                            queryset: db_models.QuerySet) -> None:
@@ -147,25 +147,6 @@ class Post(soft_deletion.Admin):
                           utils.translation.ngettext(
                                 'commenting on %d post was unlocked.',
                                 'commenting on %d posts was unlocked.',
-                                idx,
-                          ) % idx, 
-                          messages.SUCCESS)
-
-    def pin_post(self, request: http.HttpRequest, 
-                         queryset: db_models.QuerySet) -> None:
-        idx = 0
-        for q in queryset:
-            q.pinned = 1
-            try:
-                q.save(update_fields=['pinned'])
-                idx += 1
-            except Exception as e:
-                logger.error("Error unpinning posts: {0}".format(e))
-        
-        self.message_user(request,
-                          utils.translation.ngettext(
-                                '%d post was unpinned.',
-                                '%d posts were unpinned.',
                                 idx,
                           ) % idx, 
                           messages.SUCCESS)
