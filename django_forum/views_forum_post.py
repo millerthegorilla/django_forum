@@ -223,7 +223,7 @@ class UpdateComment(auth.mixins.LoginRequiredMixin, views.View):
         if comment.author == request.user:
             comment.text = request.POST['comment-text'].strip()
             comment.save(update_fields=['text'])
-            key = make_template_fragment_key("comment", [comment.id, comment.slug])
+            key = make_template_fragment_key("comment", [request.user, comment.id, comment.slug])
             template_cache.delete(key)
         return shortcuts.redirect(urls.reverse_lazy(self.a_name + ':post_view',
                                                     args=[post.id, post.slug])
