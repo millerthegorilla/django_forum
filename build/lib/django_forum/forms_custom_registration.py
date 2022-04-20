@@ -79,7 +79,8 @@ class CustomUserCreation(auth.forms.UserCreationForm):
             label='Password again!',
             widget=forms.PasswordInput,)
         self.fields['rules'] = forms.fields.BooleanField(
-            label='<span class="tinfo">I have read and agree with the <a class="tinfo" target="blank" href="/forum/rules/">Rules</a></span>')
+            label='',
+            help_text=mark_safe('<span class="tinfo">I have read and agree with the <a class="tinfo" target="blank" href="/forum/rules/">Rules</a></span>'))
         self.helper = crispy_forms.helper.FormHelper()
         self.helper.form_method = 'post'
         self.helper.form_action = reverse_lazy('register')
