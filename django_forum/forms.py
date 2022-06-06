@@ -47,6 +47,7 @@ class ForumProfileUser(profile_forms.UserProfile):
             self.helper.layout)
         self.helper.form_tag = False
 
+
 class ForumProfile(profile_forms.Profile):
     class Meta(profile_forms.Profile.Meta):
         model = forum_models.ForumProfile
@@ -143,6 +144,7 @@ class Comment(messages_forms.Message):
         self.helper.form_id = 'id-post-create-form'
         self.helper.form_method = 'post'
         self.helper.form_class = 'col-auto'
+
 
 ## TODO add choices field to search page
 class PostListSearch(forms.Form):
