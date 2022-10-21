@@ -1,27 +1,18 @@
 Metadata-Version: 2.1
 Name: django-forum
-Version: 1.0
-Summary: "A Django app that extends the django_messages app, and adds a functional forum with moderateable posts and comments."
+Version: 0.0.1
+Summary: A simple django app to provide a basic forum
 Home-page: https://github.com/millerthegorilla/django_forum
+Download-URL: https://github.com/millerthegorilla/django_forum
 Author: James Miller
 Author-email: jamesstewartmiller@gmail.com
-License: MiT  # Example license
-Platform: UNKNOWN
-Classifier: Environment :: Web Environment
-Classifier: Framework :: Django
-Classifier: Framework :: Django :: 3.2.9 # Replace "X.Y" as appropriate
-Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: BSD License
-Classifier: Operating System :: OS Independent
-Classifier: Programming Language :: Python
-Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.8
-Classifier: Programming Language :: Python :: 3.9
-Classifier: Topic :: Internet :: WWW/HTTP
-Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
+License: MIT
+Keywords: django,django_forum,forum app
+Classifier: DevelopmentStatus::2-Pre-Alpha
+Classifier: Framework::Django CMS
+Classifier: Framework::Django::4.0
 Requires-Python: >=3.8
-Description-Content-Type: 'text/markdown'
+Description-Content-Type: text/markdown
 License-File: LICENSE
 
 # django_forum
@@ -169,4 +160,28 @@ django-recaptcha==2.0.6
 random_username==1.0.2
 sorl-thumbnail==12.7.0
 
-
+# to install pillow (required for safeimagefield) the following dependencies on Fedora need to be installed
+# (from the dockerfile referenced at https://pillow.readthedocs.io/en/latest/installation.html)
+dnf install -y \
+    freetype-devel \
+    fribidi-devel \
+    gcc \
+    harfbuzz-devel \
+    lcms2-devel \
+    libimagequant-devel \
+    libjpeg-devel \
+    libraqm-devel \
+    libtiff-devel \
+    libwebp-devel \
+    make \
+    openjpeg2-devel \
+    python3-devel \
+    python3-tkinter \
+    python3-virtualenv \
+    redhat-rpm-config \
+    tcl-devel \
+    tk-devel \
+    util-linux \
+    which \
+    xorg-x11-server-Xvfb \
+    zlib-devel \

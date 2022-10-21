@@ -142,3 +142,29 @@ fuzzywuzzy==0.18.0
 django-recaptcha==2.0.6
 random_username==1.0.2
 sorl-thumbnail==12.7.0
+
+# to install pillow (required for safeimagefield) the following dependencies on Fedora need to be installed
+# (from the dockerfile referenced at https://pillow.readthedocs.io/en/latest/installation.html)
+dnf install -y \
+    freetype-devel \
+    fribidi-devel \
+    gcc \
+    harfbuzz-devel \
+    lcms2-devel \
+    libimagequant-devel \
+    libjpeg-devel \
+    libraqm-devel \
+    libtiff-devel \
+    libwebp-devel \
+    make \
+    openjpeg2-devel \
+    python3-devel \
+    python3-tkinter \
+    python3-virtualenv \
+    redhat-rpm-config \
+    tcl-devel \
+    tk-devel \
+    util-linux \
+    which \
+    xorg-x11-server-Xvfb \
+    zlib-devel \

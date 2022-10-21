@@ -1,3 +1,11 @@
-django_profile@ git+https://github.com/millerthegorilla/django_profile@main
-django_messages@ git+https://github.com/millerthegorilla/django_messages@main
-safe_imagefield@ git+https://github.com/millerthegorilla/safe_imagefield@main
+django>=4.0.1
+django_messages@ git+ssh://git@github.com/millerthegorilla/django_messages#egg=django_messages
+django_profile@ git+ssh://git@github.com/millerthegorilla/django_profile#egg=django_profile
+safe_imagefield@ git+ssh://git@github.com/millerthegorilla/safe_imagefield#egg==safe_imagefield
+random_username>=1.0.2
+sorl-thumbnail>=12.9.0
+elasticsearch_dsl>=7.4.0
+django_elasticsearch_dsl>=7.2.2
+django_tinymce>=3.5.0
+css_html_js_minify>=2.5.5
+jsmin>=3.0.1

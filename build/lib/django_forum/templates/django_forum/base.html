@@ -34,12 +34,12 @@
                 <li><a href="{% url 'django_forum:post_list_view' %}" class="text-primary">Forum Posts</a></li>
                 <li><a href="{% url 'django_forum:post_create_view' %}" class="text-dark">Create Post</a></li>
                 <li><a href="{% url 'django_forum:profile_update_view' %}" class="text-success">Profile</a></li>
-                <li><a href="{% url 'logout' %}" class="text-danger">Logout</a></li>
+                <li><a href="{% url 'django_users:logout' %}" class="text-danger">Logout</a></li>
               {% else %}
-                <li><a href="{% url 'login' %}" class="text-success">Login</a></li>
-                <li><a href="{% url 'register' %}" class="text-primary">Register</a></li>
-                <li><a href="{% url 'password_reset' %}" class="text-muted">Password reset</a></li>
-                <li><a href="{% url 'resend_confirmation' %}" class="text-danger mt-3">Resend Confirmation Token</a>
+                <li><a href="{% url 'django_users:login' %}" class="text-success">Login</a></li>
+                <li><a href="{% url 'django_users:register' %}" class="text-primary">Register</a></li>
+                <li><a href="{% url 'django_users:password_reset' %}" class="text-muted">Password reset</a></li>
+                <li><a href="{% url 'django_users:resend_confirmation' %}" class="text-danger mt-3">Resend Confirmation Token</a>
               {% endif %}
             </ul>
           </div>
