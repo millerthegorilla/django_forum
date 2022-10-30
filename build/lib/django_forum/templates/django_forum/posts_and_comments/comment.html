@@ -7,7 +7,7 @@
 		        <div class="row mx-auto">
 			        <div class="comments ps-4">
 		    		{% for comment in comments %}
-		    		{% cache 30 comment.slug %}
+		    		{% cache 30 "comment" comment.slug %}
 		                <div class="flex-column mx-auto">
                                 <div class="d-flex">
                                     <a href="/people/{{comment.author}}/">{% thumbnail comment.author.profile.avatar.image_file "40x40" crop="center" as im %}
@@ -24,15 +24,15 @@
                             {% endif%}
                             {% if comment.author == request.user %}
                             <div id="comment-form-buttons-{{ forloop.counter }}" class="comment-form-buttons">
-                            	<form method="post" action="{% url 'django_forum:comment_update' %}" id="comment-update-form">
-                            	{% csrf_token %}
-                            		<input id="post-id" type="hidden" name="post-id" value="{{ post.id }}">
+                            	<form method="post" action="{% url 'django_forum:comment_update' comment.id comment.slug %}" id="comment-update-form-{{ forloop.counter }}" class="comment-update-form">
+                            		{% csrf_token %}
+                            		<!-- <input id="post-id" type="hidden" name="post-id" value="{{ post.id }}">
         							<input id="post-slug" type="hidden" name="post-slug" value="{{ post.slug }}">
         							<input id="comment-slug" type="hidden" name="comment-slug" value="{{ comment.slug }}">
-        							<input id="comment-id" type="hidden" name="comment-id" value="{{ comment.id }}">
+        							<input id="comment-id" type="hidden" name="comment-id" value="{{ comment.id }}"> -->
                             		<div class="row">
                             			<div class="col-auto">
-                                    		<textarea id="comment-textarea-{{ forloop.counter }}" wrap="hard" rows="6" cols="60" class="comment-textarea" name="comment-text"></textarea>
+                                    		<textarea id="comment-textarea-{{ forloop.counter }}" form="comment-update-form-{{ forloop.counter }}" wrap="hard" rows="6" cols="60" class="comment-textarea" name="text"></textarea>
                                     	</div>
                                     </div>
                                     <div class="row">
@@ -108,12 +108,12 @@
 					</div>
 					<div class="modal-footer">
 					  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-					  <form method="post" action="{% url 'django_forum:comment_delete' %}">
+					  <form method="post" id="delete-form" data-action="{% url 'django_forum:comment_delete' 0 'slug' %}">
 						{% csrf_token %}
-						<input id="post-id" type="hidden" name="post-id" value="{{ post.id }}">
+						<!-- <input id="post-id" type="hidden" name="post-id" value="{{ post.id }}">
 						<input id="post-slug" type="hidden" name="post-slug" value="{{ post.slug }}">
 						<input id="rem-comment-slug" type="hidden" name="comment-slug" value="">
-						<input id="rem-comment-id" type="hidden" name="comment-id" value="">
+						<input id="rem-comment-id" type="hidden" name="comment-id" value=""> -->
 						<button type="submit" class="btn btn-primary">Delete Comment</button>
 					  </form>
 					</div>

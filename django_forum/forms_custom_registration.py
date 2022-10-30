@@ -1,6 +1,7 @@
 from itertools import chain
 
-import captcha
+from captcha.fields import ReCaptchaField
+from captcha.widgets import ReCaptchaV2Checkbox
 import crispy_forms
 from crispy_bootstrap5 import bootstrap5
 from fuzzywuzzy import fuzz
@@ -17,9 +18,7 @@ from . import models as forum_models
 
 
 class CustomUserCreation(auth.forms.UserCreationForm):
-    captcha = captcha.fields.ReCaptchaField(
-        label="", widget=captcha.widgets.ReCaptchaV2Checkbox
-    )
+    captcha = ReCaptchaField(label="", widget=ReCaptchaV2Checkbox)
     email = forms.EmailField()
     model = forum_models.ForumProfile
 
@@ -68,18 +67,19 @@ class CustomUserCreation(auth.forms.UserCreationForm):
             label="Display name",
             help_text=mark_safe(
                 '<span class="tinfo">Your display name will be shown \
-                       in the forum and will be part of the link to your personal page.  \
-                       It must be *different* to your username. It must be unique.  \
-                       You can change it later...</span>'
+                 in the forum and will be part of the link to your personal page.  \
+                 It must be *different* to your username. It must be unique.  \
+                 You can change it later...</span>'
             ),
         )
         self.fields["username"] = forms.fields.CharField(
             label="Username",
             help_text=mark_safe(
                 '<span class="tinfo">Your username is used purely \
-                           for logging in, and must be different to your display name. \
-                           It must be unique. \
-                           No one will see your username. Letters, digits and @/./+/-/_ only.</span>'
+                 for logging in, and must be different to your display name. \
+                 It must be unique. \
+                 No one will see your username. Letters, digits and @/./+/-/_ \
+                 only.</span>'
             ),
         )
         self.fields["password1"] = forms.fields.CharField(
@@ -93,7 +93,8 @@ class CustomUserCreation(auth.forms.UserCreationForm):
         self.fields["rules"] = forms.fields.BooleanField(
             label="",
             help_text=mark_safe(
-                '<span class="tinfo">I have read and agree with the <a class="tinfo" target="blank" href="/forum/rules/">Rules</a></span>'
+                '<span class="tinfo">I have read and agree with the <a class="tinfo" \
+                target="blank" href="/forum/rules/">Rules</a></span>'
             ),
         )
         self.helper = crispy_forms.helper.FormHelper()

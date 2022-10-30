@@ -1,3 +1,4 @@
+import logging
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
 
@@ -5,9 +6,9 @@ from crispy_forms import helper, layout
 from crispy_bootstrap5 import bootstrap5
 from tinymce.widgets import TinyMCE
 
-from django import forms, utils
+from django import forms, utils, shortcuts
 from django.contrib import auth
-
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
@@ -18,6 +19,10 @@ from . import models as forum_models
 
 
 from django.forms import CharField
+
+logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 
 def validate_username(self, *args, **kwargs):
@@ -124,28 +129,30 @@ class ForumProfile(profile_forms.Profile):
 
 
 class Post(messages_forms.Message):
-    class Meta(messages_forms.Message.Meta):
+    class Meta:
         model = forum_models.Post
-        fields = messages_forms.Message.Meta.fields + ["title"]
+        fields = ["text", "title"]
         widgets = {"text": TinyMCE()}
 
-    def __init__(
-        self, user_name: str = None, post: forum_models.Post = None, *args, **kwargs
-    ) -> None:
-        breakpoint()
+    def __init__(self, user: User = None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        try:
+            post = self.Meta.model.objects.get(author=user)
+        except self.Meta.model.DoesNotExist:
+            post = None
         checked_string = ""
-        if (
-            post
-            and user_name
-            and post.subscribed_users.filter(username=user_name).count()
-        ):
+        if post and post.subscribed_users.filter(username=user.username).count():
             checked_string = "checked"
         checkbox_string = (
-            '<input type="checkbox" id="subscribe_cb" name="subscribe" value="Subscribe" '
+            '<input type="checkbox" id="subscribe_cb" name="subscribe" value="Subscribe" '  # noqa: E501
             + checked_string
-            + '> <label for="subscribe_cb" class="tinfo">Subscribe to this post...</label><br>'
+            + '> <label for="subscribe_cb" class="tinfo">Subscribe to this post...</label><br>'  # noqa: E501
         )
+        self.helper = helper.FormHelper()
+        self.helper.form_method = "post"
+        self.helper.form_action = shortcuts.reverse("django_forum:post_create_view")
+        self.helper.form_id = "id-post-create-form"
+        self.helper.form_class = "col-10 col-sm-10 col-md-8 mx-auto"
         self.helper.layout = layout.Layout(
             layout.Fieldset(
                 "Create your post...",
@@ -153,13 +160,15 @@ class Post(messages_forms.Message):
                 layout.Field("text", css_class="mb-3 post-create-form-text"),
                 layout.HTML(
                     "<div class='font-italic mb-3 tinfo'>Maximum of 2000 characters."
-                    "Click on word count to see how many characters you have used...</div>"
+                    "Click on word count to see how many characters you have used...</div>"  # noqa: E501
                 ),
                 layout.HTML(checkbox_string),
                 layout.Submit("save", "Publish Post", css_class="col-auto mt-3 mb-3"),
             )
         )
-        self.helper.form_action = "django_forum:post_create_view"
+
+    def clean(self):
+        pass
 
 
 class Comment(messages_forms.Message):
@@ -171,6 +180,7 @@ class Comment(messages_forms.Message):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+       # self.auto_id = False
         self.helper.layout = layout.Layout(
             layout.Fieldset(
                 '<h3 id="comment" class="comment-headline">Comment away...!</h3>',

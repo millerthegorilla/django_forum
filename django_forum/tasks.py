@@ -12,6 +12,7 @@ from . import models as forum_models
 
 logger = logging.getLogger('django_artisan')
 
+
 def send_subscribed_email(post_mdl: str,
                           comment_mdl: str,
                           post_id: int, 

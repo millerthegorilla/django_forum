@@ -1,23 +1,24 @@
 import os
 import logging
 import random
-from typing import Any, Union
+from typing import Union
 from random_username import generate
 
 from sorl import thumbnail
 from safe_imagefield import models as safe_image_models
 
-from django import urls, conf, dispatch, utils
+from django import urls, conf, dispatch
 from django.core import exceptions
-from django.db import models as db_models, DEFAULT_DB_ALIAS
-from django.db.models import signals, deletion
-from django.contrib.auth import models as auth_models
-from django.template import defaultfilters
+from django.db import models as db_models
+from django.db.models import signals
+from django.contrib.auth import get_user_model
 
 from django_profile import models as profile_models
 from django_messages import models as messages_models
 
 logger = logging.getLogger("django_artisan")
+
+User = get_user_model()
 
 # START PROFILE
 # helper functions
@@ -119,19 +120,17 @@ class ForumProfile(profile_models.Profile):
 """
     disconnect dummy profile
 """
-signals.post_save.disconnect(
-    profile_models.create_user_profile, sender=auth_models.User
-)
-# signals.post_save.disconnect(profile_models.save_user_profile, sender=auth_models.User)
+signals.post_save.disconnect(profile_models.create_user_profile, sender=User)
+# signals.post_save.disconnect(profile_models.save_user_profile, sender=User)
 """
     Custom signals to create and update user profile
 """
 
 
-@dispatch.receiver(signals.post_save, sender=auth_models.User)
+@dispatch.receiver(signals.post_save, sender=User)
 def create_user_forum_profile(
-    sender: auth_models.User,
-    instance: auth_models.User,
+    sender: User,
+    instance: User,
     created: bool = False,
     **kwargs,
 ) -> None:
@@ -146,15 +145,15 @@ def create_user_forum_profile(
         logger.error("Error saving forum profile : {0}".format(e))
 
 
-# @dispatch.receiver(signals.post_save, sender=auth_models.User)
-# def save_user_forum_profile(sender: auth_models.User, instance: auth_models.User, **kwargs) -> None:
+# @dispatch.receiver(signals.post_save, sender=User)
+# def save_user_forum_profile(sender: User, instance: User, **kwargs) -> None:
 #     try:
 #         instance.profile.save()
 #     except (exceptions.ObjectDoesNotExist, exceptions.FieldError) as e:
 #         logger.error("Error saving forum profile : {0}".format(e))
 
-signals.post_save.connect(create_user_forum_profile, sender=auth_models.User)
-# signals.post_save.connect(save_user_forum_profile, sender=auth_models.User)
+signals.post_save.connect(create_user_forum_profile, sender=User)
+# signals.post_save.connect(save_user_forum_profile, sender=User)
 
 
 @dispatch.receiver(signals.pre_delete, sender=ForumProfile)
@@ -196,9 +195,15 @@ class Post(messages_models.Message):
     title: db_models.CharField = db_models.CharField(max_length=100, default="")
     pinned: db_models.SmallIntegerField = db_models.SmallIntegerField(default=0)
     subscribed_users: db_models.ManyToManyField = db_models.ManyToManyField(
-        auth_models.User, blank=True, related_name="subscribed_posts"
+        User, blank=True, related_name="subscribed_posts"
     )
     commenting_locked: db_models.BooleanField = db_models.BooleanField(default=False)
+    author: db_models.ForeignKey = db_models.ForeignKey(
+        User,
+        on_delete=db_models.DO_NOTHING,
+        null=False,
+        related_name="%(app_label)s_%(class)s_related",
+    )
 
     class Meta(messages_models.Message.Meta):
         app_label = "django_forum"
@@ -210,9 +215,9 @@ class Post(messages_models.Message):
         except AttributeError:
             abstract = False
 
-    def get_absolute_url(self, a_name: str = "django_forum") -> str:
+    def get_absolute_url(self) -> str:
         return urls.reverse_lazy(
-            a_name + ":post_view", args=[self.id, self.slug]
+            "django_forum:post_view", args=[self.id, self.slug]
         )  # type: ignore
 
     def get_author_name(self) -> str:
@@ -225,7 +230,6 @@ class Post(messages_models.Message):
 # if django_forum.models.Post is abstract then the below needs to know what Post model
 # is being used.  TODO  make sure that docs indicate that POST_MODEL must be set if
 # ABSTRACTPOST is True.
-import importlib
 
 try:
     post_model = (
@@ -259,13 +263,5 @@ class Comment(messages_models.Message):
     def get_author_name(self) -> str:
         return self.author.profile.display_name
 
-
-# @dispatch.receiver(post_save, sender=Comment)
-# def save_author_on_comment_creation(sender: Comment, instance: Comment, created, **kwargs) -> None:
-#     if created:
-#         instance.author = instance.comment_author()
-#         instance.title = slugify(
-#             instance.text[:10] + str(dateformat.format(instance.created_at, 'Y-m-d H:i:s')))
-#         instance.save()
 
 # END POSTS AND COMMENTS

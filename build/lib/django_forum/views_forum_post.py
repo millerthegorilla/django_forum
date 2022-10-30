@@ -1,6 +1,8 @@
-import html, logging, uuid
-from typing import Type
-
+import elasticsearch_dsl
+import html
+import logging
+import uuid
+import typing
 import bleach
 
 from django_q import tasks
@@ -9,18 +11,19 @@ from django import http, shortcuts, urls, views, utils, conf
 from django.apps import apps
 from django.core import mail
 from django.core.cache import cache as template_cache
+from django.core import paginator as pagination
 from django.core.cache.utils import make_template_fragment_key
 from django.contrib import auth
 from django.template import defaultfilters
-from django.db.models import F
 from django.views.decorators import cache
-from django.utils import timezone, decorators, safestring
-
-# from django.contrib.sites import models as site_models
+from django.views import generic
+from django.utils import safestring
 
 
 from django_messages import views as messages_views
+from django_messages import forms as messages_forms
 
+from . import documents as forum_documents
 from . import models as forum_models
 from . import forms as forum_forms
 
@@ -30,7 +33,8 @@ logger = logging.getLogger("django_artisan")
 def send_mod_mail(type: str) -> None:
     mail.send_mail(
         "Moderation for {0}".format(type),
-        "A {0} has been created and requires moderation.  Please visit the {1} AdminPanel, and inspect the {0}".format(
+        "A {0} has been created and requires moderation.  Please visit the {1} \
+        AdminPanel, and inspect the {0}".format(
             type, conf.settings.SITE_NAME
         ),
         conf.settings.EMAIL_HOST_USER,
@@ -43,9 +47,152 @@ def send_mod_mail(type: str) -> None:
     )
 
 
+# START POSTS AND COMMENTS
+class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
+    model = forum_models.Post
+    template_name = "django_forum/posts_and_comments/forum_post_create_form.html"
+    form_class = forum_forms.Post
+
+    def get_context_data(self):
+        form = self.form_class()
+        return {"form": form}
+
+    def form_valid(self, form: forum_forms.Post) -> http.HttpResponseRedirect:
+        breakpoint()
+        post = form.save(commit=False)
+        post.author = self.request.user
+        if "subscribe" in self.request.POST:
+            post.subscribed_users.add(self.request.user)
+        post.save()
+        return shortcuts.redirect(self.get_success_url(post))
+
+    def get_success_url(self, post: forum_models.Post, *args, **kwargs) -> str:
+        return urls.reverse_lazy(
+            "django_forum:post_view",
+            args=(
+                post.id,
+                post.slug,
+            ),
+        )
+
+
+@utils.decorators.method_decorator(cache.never_cache, name="dispatch")
+class PostList(auth.mixins.LoginRequiredMixin, messages_views.MessageList):
+    model = forum_models.Post
+    template_name = "django_forum/posts_and_comments/forum_post_list.html"
+    paginate_by = 5
+    """
+       the documentation for django-elasticsearch and elasticsearch-py
+       as well as elasticsearch is not particularly good, at least not in my experience.
+       The following searches posts and comments.  The search indexes are defined in
+       documents.py.
+    """
+
+    def get(self, request: http.HttpRequest) -> typing.Union[tuple, http.HttpResponse]:
+        """
+        I had a function that tested for the existence of a search slug
+        and then performed the search if necessary.  I have refactored that
+        to the below, that uses duck typing (type coercion) to perform the
+        logic of the search.  It is probably a lot slower, but seems more pythonic.
+        So, TODO profile this method vs the original from commit id
+        1d5cbccde9f7b183e4d886d7e644712b79db60cd
+        """
+        # site = site_models.Site.objects.get_current()
+        search = 0
+        p_c = None
+        is_a_search = False
+        form = forum_forms.PostListSearch(request.GET)
+        if form.is_valid():
+            is_a_search = True
+            terms = form.cleaned_data["q"].split(" ")
+            if len(terms) > 1:
+                t = "terms"
+            else:
+                t = "match"
+                terms = terms[0]
+            queryset = (
+                forum_documents.Post.search()
+                .query(
+                    elasticsearch_dsl.Q(t, text=terms)
+                    | elasticsearch_dsl.Q(t, author=terms)
+                    | elasticsearch_dsl.Q(t, title=terms)
+                )
+                .to_queryset()
+            )
+            queryset_comments = (
+                forum_documents.Comment.search()
+                .query(
+                    elasticsearch_dsl.Q(t, text=terms)
+                    | elasticsearch_dsl.Q(t, author=terms)
+                )
+                .to_queryset()
+            )
+            for sr in queryset_comments:
+                queryset = queryset | self.model.objects.filter(id=sr.post_fk.id)
+            time_range = eval(
+                "form." + form["published"].value()
+            )  #### TODO !!! eval is evil.
+            search = len(queryset)
+            if search and time_range:
+                queryset = (
+                    queryset.filter(
+                        created_at__lt=time_range[0], created_at__gt=time_range[1]
+                    )
+                    .order_by("-pinned")
+                    .select_related("author")
+                    .select_related("author__profile")
+                    .select_related("author__profile__avatar")
+                )
+                search = len(queryset)
+            if not search:
+                queryset = (
+                    self.model.objects.order_by("-pinned")
+                    .select_related("author")
+                    .select_related("author__profile")
+                    .select_related("author__profile__avatar")
+                )
+        else:
+            form.errors.clear()
+            queryset = (
+                self.model.objects.order_by("-pinned")
+                .select_related("author")
+                .select_related("author__profile")
+                .select_related("author__profile__avatar")
+            )
+        paginator = pagination.Paginator(queryset, self.paginate_by)
+
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+        context = {
+            "form": form,
+            "page_obj": page_obj,
+            "search": search,
+            "is_a_search": is_a_search,
+            "site_url": (request.scheme or "https") + "://" + request.get_host(),
+        }  # site.domain}
+        return shortcuts.render(request, self.template_name, context)
+
+
+## autocomplete now removed to reduce number of requests
+# def autocomplete(request):
+#     max_items = 5
+#     q = request.GET.get('q')
+#     results = []
+#     if q:
+#         search = Post.search().suggest('results', q, term={'field':'text'})
+#         result = search.execute()
+#         for idx,item in enumerate(result.suggest['results'][0]['options']):
+#             results.append(item.text)
+#     return JsonResponse({
+#         'results': results
+#     })
+
+# END POSTS AND COMMENTS
+
+
 @utils.decorators.method_decorator(cache.never_cache, name="dispatch")
 @utils.decorators.method_decorator(cache.never_cache, name="get")
-class PostView(auth.mixins.LoginRequiredMixin, messages_views.MessageView):
+class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
     """
     TODO: Replace superclass form processing if conditions with separate urls/views
           and overload them individually here, where necessary, instead of redefining
@@ -66,11 +213,11 @@ class PostView(auth.mixins.LoginRequiredMixin, messages_views.MessageView):
             .select_related("author__profile__avatar")
         )
         context = self.get_context_data()
+        context["post"] = self.object
         return shortcuts.render(request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
-        context_data = super().get_context_data(**kwargs)
-        # takes to long ... site = site_models.Site.objects.get_current()
+        context_data = {}
         context_data["site_url"] = (
             (self.request.scheme or "https") + "://" + conf.settings.SITE_DOMAIN
         )
@@ -109,30 +256,47 @@ def subscribe(request) -> http.JsonResponse:
         return http.JsonResponse({"error": ""}, status=500)
 
 
-class PostUpdate(auth.mixins.LoginRequiredMixin, messages_views.MessageUpdate):
+class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
     model = forum_models.Post
     a_name = "django_forum"
+    form_class = forum_forms.Post
+    comment_form_class = forum_forms.Comment
+    template_name = "django_forum/posts_and_comments/forum_post_detail.html"
+    pk: None
+    slug: None
 
-    def post(
-        self,
-        request: http.HttpRequest,
-        pk: int,
-        slug: str,
-        post: forum_models.Post = None,
-        updatefields: list = [],
-    ) -> http.HttpResponseRedirect:
-        try:
-            if post is None:
-                post = self.model.objects.get(id=pk)
-            post.text = messages_views.sanitize_post_text(
-                self.request.POST["update-post"]
-            )
-            post.save(update_fields=["text"] + updatefields)
-            return shortcuts.redirect(
-                urls.reverse_lazy(self.a_name + ":post_view", args=[pk, slug])
-            )
-        except self.model.DoesNotExist:
-            logger.error("post does not exist when updating post.")
+    def form_invalid(self, form):
+        context_data = {"form": form}
+        context_data["post"] = self.model.objects.get(id=self.object.id)
+        context_data["comments"] = (
+            self.object.comments.all()
+            .select_related("author")
+            .select_related("author__profile")
+            .select_related("author__profile__avatar")
+        )
+        context_data["comment_form"] = self.comment_form_class()
+        return shortcuts.render(self.request, self.template_name, context_data)
+
+    # def post(
+    #     self,
+    #     request: http.HttpRequest,
+    #     pk: int,
+    #     slug: str,
+    #     updatefields: list = [],
+    # ) -> http.HttpResponseRedirect:
+    #     breakpoint()
+    #     try:
+    #         if post is None:
+    #             post = self.model.objects.get(id=pk)
+    #         post.text = messages_forms.Message.sanitize_text(
+    #             self.request.POST["update-post"]
+    #         )
+    #         post.save(update_fields=["text"] + updatefields)
+    #         return shortcuts.redirect(
+    #             urls.reverse_lazy(self.a_name + ":post_view", args=[pk, slug])
+    #         )
+    #     except self.model.DoesNotExist:
+    #         logger.error("post does not exist when updating post.")
 
 
 class DeletePost(auth.mixins.LoginRequiredMixin, views.View):
@@ -153,126 +317,124 @@ class DeletePost(auth.mixins.LoginRequiredMixin, views.View):
         return shortcuts.redirect(urls.reverse_lazy(self.a_name + ":post_list_view"))
 
 
-class CreateComment(auth.mixins.LoginRequiredMixin, views.View):
-    http_method_names: list = ["post"]
+class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
     post_model: forum_models.Post = forum_models.Post
-    comment_model: forum_models.Comment = forum_models.Comment
+    model: forum_models.Comment = forum_models.Comment
     form_class: forum_forms.Comment = forum_forms.Comment
-    template_name: str = "django_forum/posts_and_comments/forum_post_detail.html"
-    a_name: str = "django_forum"
 
-    def post(self, request: http.HttpRequest, pk: int, slug: str):
-        post = self.post_model.objects.get(pk=pk, slug=slug)
-        if not post.moderation_date:
-            comment_form = self.form_class(data=self.request.POST)
-            if comment_form.is_valid():
-                new_comment = comment_form.save(commit=False)
-                new_comment.author = request.user
-                new_comment.text = safestring.mark_safe(
-                    html.unescape(bleach.clean(new_comment.text, strip=False))
-                )
-                new_comment.slug = defaultfilters.slugify(
-                    new_comment.text[:4]
+    def form_valid(self, form):
+        comment = form.save(commit = False)
+        comment.author = self.request.user
+        comment.post_fk = self.post_model.objects.get(id=self.kwargs['pk'])
+        comment.slug = defaultfilters.slugify(
+                    comment.text[:4]
                     + "_comment_"
-                    + str(new_comment.created_at or utils.timezone.now())
+                    + str(comment.created_at or utils.timezone.now())
                 )
-                new_comment.post_fk = post
-                new_comment.save()
-                sname: str = "subscribe_timeout" + str(uuid.uuid4())
-                path: str = "/forum/{}/{}".format(
-                    self.kwargs["pk"], self.kwargs["slug"]
-                )
-                protocol = "https" if self.request.is_secure() else "http"
-                tasks.schedule(
-                    "django_forum.tasks.send_subscribed_email",
-                    self.post_model._meta.app_label
-                    + "."
-                    + self.post_model._meta.object_name,
-                    self.comment_model._meta.app_label
-                    + "."
-                    + self.comment_model._meta.object_name,
-                    name=sname,
-                    schedule_type="O",
-                    repeats=-1,
-                    next_run=utils.timezone.now() + conf.settings.COMMENT_WAIT,
-                    post_id=post.id,
-                    comment_id=new_comment.id,
-                    path=path,
-                    protocol=protocol,
-                    s_name=sname,
-                )
-                return shortcuts.redirect(new_comment, permanent=True)
-            else:
-                site = self.request.get_absolute_url()
-                comments = self.model.objects.filter(post_fk=post).all()
-                return shortcuts.render(
-                    self.request,
-                    self.template_name,
-                    {
-                        "comment_edit": True,
-                        "post": post,
-                        "comments": comments,
-                        "comment_form": comment_form,
-                        "site_url": (self.request.scheme or "https")
-                        + "://"
-                        + site.domain,
-                    },
-                )
+        comment.save()
+        sname: str = "subscribe_timeout" + str(uuid.uuid4())
+        protocol = "https" if self.request.is_secure() else "http"
+        tasks.schedule(
+            "django_forum.tasks.send_subscribed_email",
+            self.post_model._meta.app_label
+            + "."
+            + self.post_model._meta.object_name,
+            self.model._meta.app_label
+            + "."
+            + self.model._meta.object_name,
+            name=sname,
+            schedule_type="O",
+            repeats=-1,
+            next_run=utils.timezone.now() + conf.settings.COMMENT_WAIT,
+            post_id=comment.post_fk.id,
+            comment_id=comment.id,
+            path=comment.get_absolute_url(),
+            protocol=protocol,
+            s_name=sname,
+        )
         return shortcuts.redirect(
-            urls.reverse_lazy(self.a_name + ":post_view", args=[post.id, post.slug]),
+            urls.reverse("django_forum:post_view", args=(
+                self.kwargs['pk'],
+                self.kwargs['slug']
+                )
+            ),
             permanent=True,
         )
+    # def post(self, request: http.HttpRequest, pk: int, slug: str):
+    #     post = self.post_model.objects.get(pk=pk, slug=slug)
+    #     if not post.moderation_date:
+    #         comment_form = self.form_class(data=self.request.POST)
+    #         if comment_form.is_valid():
+    #             new_comment = comment_form.save(commit=False)
+    #             new_comment.author = request.user
+    #             new_comment.text = safestring.mark_safe(
+    #                 html.unescape(bleach.clean(new_comment.text, strip=False))
+    #             )
+    #             new_comment.slug = defaultfilters.slugify(
+    #                 new_comment.text[:4]
+    #                 + "_comment_"
+    #                 + str(new_comment.created_at or utils.timezone.now())
+    #             )
+    #             new_comment.post_fk = post
+    #             new_comment.save()
+    #             sname: str = "subscribe_timeout" + str(uuid.uuid4())
+    #             path: str = "/forum/{}/{}".format(
+    #                 self.kwargs["pk"], self.kwargs["slug"]
+    #             )
+    #             protocol = "https" if self.request.is_secure() else "http"
+    #             tasks.schedule(
+    #                 "django_forum.tasks.send_subscribed_email",
+    #                 self.post_model._meta.app_label
+    #                 + "."
+    #                 + self.post_model._meta.object_name,
+    #                 self.comment_model._meta.app_label
+    #                 + "."
+    #                 + self.comment_model._meta.object_name,
+    #                 name=sname,
+    #                 schedule_type="O",
+    #                 repeats=-1,
+    #                 next_run=utils.timezone.now() + conf.settings.COMMENT_WAIT,
+    #                 post_id=post.id,
+    #                 comment_id=new_comment.id,
+    #                 path=path,
+    #                 protocol=protocol,
+    #                 s_name=sname,
+    #             )
+    #             return shortcuts.redirect(new_comment, permanent=True)
+    #         else:
+    #             site = self.request.get_absolute_url()
+    #             comments = self.model.objects.filter(post_fk=post).all()
+    #             return shortcuts.render(
+    #                 self.request,
+    #                 self.template_name,
+    #                 {
+    #                     "comment_edit": True,
+    #                     "post": post,
+    #                     "comments": comments,
+    #                     "comment_form": comment_form,
+    #                     "site_url": (self.request.scheme or "https")
+    #                     + "://"
+    #                     + site.domain,
+    #                 },
+    #             )
+    #     return shortcuts.redirect(
+    #         urls.reverse_lazy(self.a_name + ":post_view", args=[post.id, post.slug]),
+    #         permanent=True,
+    #     )
 
 
-class DeleteComment(auth.mixins.LoginRequiredMixin, views.View):
-    http_method_names = ["post"]
-    post_model = forum_models.Post
-    comment_model = forum_models.Comment
-    a_name = "django_forum"
+class DeleteComment(auth.mixins.LoginRequiredMixin, views.generic.DeleteView):
+    model = forum_models.Comment
 
-    def post(self, request: http.HttpRequest) -> http.HttpResponseRedirect:
-        comment = self.comment_model.objects.get(
-            id=request.POST["comment-id"], slug=request.POST["comment-slug"]
-        )
-        post = self.post_model.objects.get(
-            id=request.POST["post-id"], slug=request.POST["post-slug"]
-        )
-        if comment.author == request.user:
-            try:
-                comment.delete()
-            except self.model.DoesNotExist:
-                logger.warn("the model you tried to delete does not exist")
-
-        return shortcuts.redirect(
-            urls.reverse_lazy(self.a_name + ":post_view", args=[post.id, post.slug])
-        )
+    def get_success_url(self, *args, **kwwargs):
+        return urls.reverse("django_forum:post_view",
+                            args=(self.object.post_fk.id,
+                                  self.object.post_fk.slug))
 
 
-class UpdateComment(auth.mixins.LoginRequiredMixin, views.View):
-    http_method_names = ["post"]
-    comment_model = forum_models.Comment
-    post_model = forum_models.Post
-    a_name = "django_forum"
-
-    def post(self, request: http.HttpRequest) -> http.HttpResponseRedirect:
-        comment = self.comment_model.objects.get(
-            id=request.POST["comment-id"], slug=request.POST["comment-slug"]
-        )
-        post = self.post_model.objects.get(
-            id=request.POST["post-id"], slug=request.POST["post-slug"]
-        )
-        if comment.author == request.user:
-            comment.text = request.POST["comment-text"].strip()
-            comment.save(update_fields=["text"])
-            key = make_template_fragment_key(
-                "comment", [request.user, comment.id, comment.slug]
-            )
-            template_cache.delete(key)
-        return shortcuts.redirect(
-            urls.reverse_lazy(self.a_name + ":post_view", args=[post.id, post.slug])
-            + "#"
-            + comment.slug
-        )
+class UpdateComment(auth.mixins.LoginRequiredMixin, views.generic.UpdateView):
+    model = forum_models.Comment
+    form_class = forum_forms.Comment
 
 
 class ReportComment(auth.mixins.LoginRequiredMixin, views.View):

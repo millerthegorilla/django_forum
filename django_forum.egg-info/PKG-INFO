@@ -3,11 +3,12 @@ Name: django-forum
 Version: 0.0.1
 Summary: A simple django app to provide a basic forum
 Home-page: https://github.com/millerthegorilla/django_forum
-Download-URL: https://github.com/millerthegorilla/django_forum
 Author: James Miller
 Author-email: jamesstewartmiller@gmail.com
 License: MIT
+Download-URL: https://github.com/millerthegorilla/django_forum
 Keywords: django,django_forum,forum app
+Platform: UNKNOWN
 Classifier: DevelopmentStatus::2-Pre-Alpha
 Classifier: Framework::Django CMS
 Classifier: Framework::Django::4.0
@@ -185,3 +186,5 @@ dnf install -y \
     which \
     xorg-x11-server-Xvfb \
     zlib-devel \
+
+

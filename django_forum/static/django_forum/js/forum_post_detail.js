@@ -1,18 +1,25 @@
-function showEditor() {
+function EditPost() {
+  console.log("edit post function")
   $('.update-form-text').val($('#textarea').html())
-  $('#post-edit-div').show();
+  $('#title_input').val($('#post_title').html())
+  $('.post-edit-div').show();
   tinymce.editors[0].show();
-  $('#textarea').hide()
+  $('#title_div').hide();
+  $('#textarea').hide();
   $('#modify-post-btns').hide();
-  
-  $('#editor-cancel-btn').click(function(){
+}
+
+function HideEditPost(){
     tinymce.editors[0].hide();
     $('.update-form-text').hide()
-    $('#post-edit-div').hide()
+    $('.post-edit-div').hide()
+    let bob=$('#title_input').val()
+    console.log("bob is " + bob)
+    $('#post_title').html(bob)
     $('#textarea').html($('.update-form-text').val())
+    $('#title_div').show()
     $('#textarea').show()
-      $('#modify-post-btns').show();
-  });
+    $('#modify-post-btns').show();
 }
 
 function getCookie(name) {
@@ -32,7 +39,6 @@ function getCookie(name) {
 }
 
 function showUpdateComment(id) {
-  console.log(id)
   //$("textarea[id='#comment-textarea-" + id + "']").val($('#comment-text-' + id).html().trim())
   $("#comment-textarea-" + id).val($('#comment-text-' + id).text().trim())
   $('#comment-textarea-' + id).show()
@@ -61,16 +67,19 @@ $(document).ready(function () {
     $("#count").text("...characters left: " + String(500 - $(this).val().length));
   });
 
-	$('#post-edit-div').hide();
+	$('.post-edit-div').hide();
 	$('.update-form-text').hide();
 	$('#comment-textarea').hide();
 	$('.comment-form-buttons').hide();
-	$('#editor-btn').click(function(){
-        showEditor()
-	});
+	$('#editor-btn').on("click", function( event ) {
+      EditPost()
+  });
+  $('#editor-cancel-btn').on("click", function( event ) {
+      HideEditPost()
+  });
 	$('.comment-save').on("click", function( event ) {
   		event.preventDefault();
-  		event.currentTarget.closest("#comment-update-form").submit();
+  		event.currentTarget.closest(".comment-update-form").submit();
   	});	
   	$('.report-post').on("click", function( event ) {
   		event.preventDefault();
@@ -109,6 +118,8 @@ $(document).ready(function () {
       var comment_id_value = button.getAttribute('data-bs-comment-id')
       $('#rem-comment-slug').attr('value', comment_slug_value)
       $('#rem-comment-id').attr('value', comment_id_value)
+      let action=$('#delete-form').data('action').split('/')[1]
+      $('#delete-form').attr('action', `/${action}/${comment_id_value}/${comment_slug_value}/`)
     })
   }
   $('#subscribed_cb').change(function() {

@@ -1,4 +1,6 @@
 from django import urls
+from django.conf import settings
+from django.conf.urls.static import static
 
 from . import views as forum_views
 from . import views_forum_post as forum_post_views
@@ -6,8 +8,14 @@ from . import views_forum_post as forum_post_views
 app_name = "django_forum"
 
 postview_patterns = [
+    urls.path("posts/", forum_post_views.PostList.as_view(), name="post_list_view"),
     urls.path(
-        "<int:pk>/<slug:slug>/", forum_post_views.PostView.as_view(), name="post_view"
+        "post/<int:pk>/<slug:slug>/",
+        forum_post_views.PostView.as_view(),
+        name="post_view",
+    ),
+    urls.path(
+        "create_post/", forum_post_views.PostCreate.as_view(), name="post_create_view"
     ),
     urls.path(
         "update_post/<int:pk>/<slug:slug>/",
@@ -28,12 +36,12 @@ postview_patterns = [
         name="comment_create",
     ),
     urls.path(
-        "delete_comment/",
+        "delete_comment/<int:pk>/<slug:slug>/",
         forum_post_views.DeleteComment.as_view(),
         name="comment_delete",
     ),
     urls.path(
-        "update_comment/",
+        "update_comment/<int:pk>/<slug:slug>/",
         forum_post_views.UpdateComment.as_view(),
         name="comment_update",
     ),
@@ -47,10 +55,6 @@ postview_patterns = [
 
 urlpatterns = [
     urls.path(
-        "create_post/", forum_views.PostCreate.as_view(), name="post_create_view"
-    ),
-    urls.path("posts/", forum_views.PostList.as_view(), name="post_list_view"),
-    urls.path(
         "profile/", forum_views.ForumProfile.as_view(), name="profile_update_view"
     ),
     urls.path(
@@ -62,8 +66,6 @@ urlpatterns = [
     # autocomplete
 ] + postview_patterns
 
-
-# NEEDED FOR ADDITION OF DISPLAY_NAME AND RULES
 # the following goes in the project top level urls.py
 # from django_profile.views import CustomRegister
 # path('users/accounts/register/', CustomRegister.as_view(), name='register'),
