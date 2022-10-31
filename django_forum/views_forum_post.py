@@ -266,7 +266,11 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
     slug: None
 
     def form_invalid(self, form):
-        context_data = {"form": form}
+        context_data = { "form": form }
+        context_data.update()
+            "text_errors": form.errors["text"],
+            "title_errors": form.errors["title"],
+        }
         context_data["post"] = self.model.objects.get(id=self.object.id)
         context_data["comments"] = (
             self.object.comments.all()
@@ -321,27 +325,40 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
     post_model: forum_models.Post = forum_models.Post
     model: forum_models.Comment = forum_models.Comment
     form_class: forum_forms.Comment = forum_forms.Comment
+    post_form_class: forum_forms.Post = forum_forms.Post
+    template_name = "django_forum/posts_and_comments/forum_post_detail.html"
+
+    def form_invalid(self, form):
+        post = self.post_model.objects.get(
+            pk=self.kwargs["pk"], slug=self.kwargs["slug"]
+        )
+        context_data = {"form": self.post_form_class(instance=post)}
+        context_data["post"] = post
+        context_data["comments"] = (
+            post.comments.all()
+            .select_related("author")
+            .select_related("author__profile")
+            .select_related("author__profile__avatar")
+        )
+        context_data["comment_form"] = form
+        return shortcuts.render(self.request, self.template_name, context_data)
 
     def form_valid(self, form):
-        comment = form.save(commit = False)
+        comment = form.save(commit=False)
         comment.author = self.request.user
-        comment.post_fk = self.post_model.objects.get(id=self.kwargs['pk'])
+        comment.post_fk = self.post_model.objects.get(id=self.kwargs["pk"])
         comment.slug = defaultfilters.slugify(
-                    comment.text[:4]
-                    + "_comment_"
-                    + str(comment.created_at or utils.timezone.now())
-                )
+            comment.text[:4]
+            + "_comment_"
+            + str(comment.created_at or utils.timezone.now())
+        )
         comment.save()
         sname: str = "subscribe_timeout" + str(uuid.uuid4())
         protocol = "https" if self.request.is_secure() else "http"
         tasks.schedule(
             "django_forum.tasks.send_subscribed_email",
-            self.post_model._meta.app_label
-            + "."
-            + self.post_model._meta.object_name,
-            self.model._meta.app_label
-            + "."
-            + self.model._meta.object_name,
+            self.post_model._meta.app_label + "." + self.post_model._meta.object_name,
+            self.model._meta.app_label + "." + self.model._meta.object_name,
             name=sname,
             schedule_type="O",
             repeats=-1,
@@ -353,13 +370,12 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
             s_name=sname,
         )
         return shortcuts.redirect(
-            urls.reverse("django_forum:post_view", args=(
-                self.kwargs['pk'],
-                self.kwargs['slug']
-                )
+            urls.reverse(
+                "django_forum:post_view", args=(self.kwargs["pk"], self.kwargs["slug"])
             ),
             permanent=True,
         )
+
     # def post(self, request: http.HttpRequest, pk: int, slug: str):
     #     post = self.post_model.objects.get(pk=pk, slug=slug)
     #     if not post.moderation_date:
@@ -427,9 +443,10 @@ class DeleteComment(auth.mixins.LoginRequiredMixin, views.generic.DeleteView):
     model = forum_models.Comment
 
     def get_success_url(self, *args, **kwwargs):
-        return urls.reverse("django_forum:post_view",
-                            args=(self.object.post_fk.id,
-                                  self.object.post_fk.slug))
+        return urls.reverse(
+            "django_forum:post_view",
+            args=(self.object.post_fk.id, self.object.post_fk.slug),
+        )
 
 
 class UpdateComment(auth.mixins.LoginRequiredMixin, views.generic.UpdateView):

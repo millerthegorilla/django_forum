@@ -167,20 +167,24 @@ class Post(messages_forms.Message):
             )
         )
 
-    def clean(self):
-        pass
+    def clean_title(self) -> str:
+        return self.sanitize_text(self.cleaned_data["title"])
+
+    def clean_text(self) -> str:
+        breakpoint()
+        return self.sanitize_text(self.cleaned_data["text"])
 
 
 class Comment(messages_forms.Message):
-    # text = forms.CharField(
-    #         widget=forms.TextInput(attrs={'autofocus': 'autofocus'}))
+    text = forms.CharField(widget=forms.TextInput(attrs={"autofocus": "autofocus"}))
+
     class Meta:
         model = forum_models.Comment
         fields = messages_forms.Message.Meta.fields
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-       # self.auto_id = False
+        # self.auto_id = False
         self.helper.layout = layout.Layout(
             layout.Fieldset(
                 '<h3 id="comment" class="comment-headline">Comment away...!</h3>',
@@ -203,6 +207,19 @@ class Comment(messages_forms.Message):
         self.helper.form_id = "id-post-create-form"
         self.helper.form_method = "post"
         self.helper.form_class = "col-auto"
+
+    def clean_text(self) -> str:
+        breakpoint()
+        if self.cleaned_data["text"] and not self.sanitize_text(
+            self.cleaned_data["text"]
+        ):
+            if "text" in self.errors and type(self.errors["text"]) == list:
+                self.errors["text"].append("That is not allowed here")
+            else:
+                self.errors["text"] = [
+                    self.errors["text"] if "text" in self.errors else "",
+                    "That is not allowed here",
+                ]
 
 
 ## TODO add choices field to search page
