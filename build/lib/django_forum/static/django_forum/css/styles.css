@@ -171,3 +171,13 @@ table {
 .comment-form-buttons {
   display: none;
 }
+
+ul.errorlist {
+  list-style-type: none;
+}
+
+.errors {
+  color: red;
+  font-family: arial;
+  font-size: 1rem;
+}

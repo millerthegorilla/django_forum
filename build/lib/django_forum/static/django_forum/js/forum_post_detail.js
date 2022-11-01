@@ -4,7 +4,8 @@ function EditPost() {
   $('#title_input').val($('#post_title').html())
   $('.post-edit-div').show();
   tinymce.editors[0].show();
-  $('#title_div').hide();
+  $('#title-div').hide();
+  $('#text-errors').hide();
   $('#textarea').hide();
   $('#modify-post-btns').hide();
 }
@@ -17,7 +18,8 @@ function HideEditPost(){
     console.log("bob is " + bob)
     $('#post_title').html(bob)
     $('#textarea').html($('.update-form-text').val())
-    $('#title_div').show()
+    $('#title-div').show()
+    $('#text-errors').show()
     $('#textarea').show()
     $('#modify-post-btns').show();
 }

@@ -129,6 +129,19 @@ class ForumProfile(profile_forms.Profile):
 
 
 class Post(messages_forms.Message):
+    text = forms.CharField(
+        error_messages={
+            "required": "A post needs some text! - you tried to submit a blank value -\
+            reverted to previous entry..."
+        },
+        widget=TinyMCE(),
+    )
+    title = forms.CharField(
+        error_messages={
+            "required": "A post needs a title!\nYou tried to submit a blank value\nreverted to previous entry..."
+        }
+    )
+
     class Meta:
         model = forum_models.Post
         fields = ["text", "title"]
@@ -171,7 +184,6 @@ class Post(messages_forms.Message):
         return self.sanitize_text(self.cleaned_data["title"])
 
     def clean_text(self) -> str:
-        breakpoint()
         return self.sanitize_text(self.cleaned_data["text"])
 
 

@@ -26,10 +26,6 @@
                             <div id="comment-form-buttons-{{ forloop.counter }}" class="comment-form-buttons">
                             	<form method="post" action="{% url 'django_forum:comment_update' comment.id comment.slug %}" id="comment-update-form-{{ forloop.counter }}" class="comment-update-form">
                             		{% csrf_token %}
-                            		<!-- <input id="post-id" type="hidden" name="post-id" value="{{ post.id }}">
-        							<input id="post-slug" type="hidden" name="post-slug" value="{{ post.slug }}">
-        							<input id="comment-slug" type="hidden" name="comment-slug" value="{{ comment.slug }}">
-        							<input id="comment-id" type="hidden" name="comment-id" value="{{ comment.id }}"> -->
                             		<div class="row">
                             			<div class="col-auto">
                                     		<textarea id="comment-textarea-{{ forloop.counter }}" form="comment-update-form-{{ forloop.counter }}" wrap="hard" rows="6" cols="60" class="comment-textarea" name="text"></textarea>
@@ -78,7 +74,7 @@
             {% if post.commenting_locked == False and post.moderation_date is None %}
             <div class="row">
 	            <div class="card-body mx-auto">
-	                <form method="post" action="{% url 'django_forum:comment_create' post.id post.slug %}" class="comment-form">
+	                <form id="comment-form" method="post" action="{% url 'django_forum:comment_create' post.id post.slug %}" class="comment-form">
 	                <input type="hidden" name="type" value="comment">
 	                  {% crispy comment_form %}
 	                  {% csrf_token %}
@@ -110,10 +106,6 @@
 					  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 					  <form method="post" id="delete-form" data-action="{% url 'django_forum:comment_delete' 0 'slug' %}">
 						{% csrf_token %}
-						<!-- <input id="post-id" type="hidden" name="post-id" value="{{ post.id }}">
-						<input id="post-slug" type="hidden" name="post-slug" value="{{ post.slug }}">
-						<input id="rem-comment-slug" type="hidden" name="comment-slug" value="">
-						<input id="rem-comment-id" type="hidden" name="comment-id" value=""> -->
 						<button type="submit" class="btn btn-primary">Delete Comment</button>
 					  </form>
 					</div>

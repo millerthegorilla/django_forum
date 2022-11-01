@@ -6,7 +6,7 @@
 				<div class="row align-items-end tinfo post-headline mb-2">
 					<div id="title-div" {% if title_errors %}class="col-auto border border-danger"{% else %}class="col-auto"{% endif %}>
 					    <h1><span id="post_title">{{ post.title|safe }}</span></h1>
-					    <div class="errors">{{ title_errors }}</div>
+					    <div class="errors">{{ title_errors|linebreaks }}</div>
 				    </div>
 				    <div class="post-edit-div">
 				    	<input id="title_input" name="title">
@@ -29,8 +29,8 @@
 				</div>
 				<div class="row ms-auto mb-2">
 					{% if not post.moderation_date %}
-				    <div id="textarea" class="col-auto">{{ post.text|safe }}</div>
-				    <div id="text-errors" {% if title_errors %}class="ms-auto border border-danger"{% else %}class="col-auto"{% endif %}>{{ text_errors }}</div>
+				    <div id="textarea" class="col-auto" required="">{{ post.text|safe }}</div>
+				    <div id="text-errors" {% if text_errors %}class="errors ms-auto border border-danger"{% else %}class="col-auto"{% endif %}>{{ text_errors }}</div>
 				    {% else %}
 				    <div>This post has been reported and is awaiting moderation.  Comments are locked until the post has been validated.</div>
 				    {% endif %}

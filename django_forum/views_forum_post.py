@@ -53,17 +53,22 @@ class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
     template_name = "django_forum/posts_and_comments/forum_post_create_form.html"
     form_class = forum_forms.Post
 
-    def get_context_data(self):
-        form = self.form_class()
+    def get_context_data(self, form=None):
+        if form and "text" in form.errors.keys():
+            form.errors["text"] = [
+                "A post needs some text! - you tried to submit a blank value...  Try again :)"
+            ]
+        else:
+            form = self.form_class()
         return {"form": form}
 
     def form_valid(self, form: forum_forms.Post) -> http.HttpResponseRedirect:
-        breakpoint()
         post = form.save(commit=False)
         post.author = self.request.user
         if "subscribe" in self.request.POST:
             post.subscribed_users.add(self.request.user)
         post.save()
+        breakpoint()
         return shortcuts.redirect(self.get_success_url(post))
 
     def get_success_url(self, post: forum_models.Post, *args, **kwargs) -> str:
@@ -266,12 +271,19 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
     slug: None
 
     def form_invalid(self, form):
-        context_data = { "form": form }
-        context_data.update()
-            "text_errors": form.errors["text"],
-            "title_errors": form.errors["title"],
+        context_data = {
+            "form": form,
+            "text_errors": form.errors.get("text", ""),
+            "title_errors": form.errors.get("title", ""),
         }
         context_data["post"] = self.model.objects.get(id=self.object.id)
+        breakpoint()
+        # if form.errors["text"]:
+        #     context_data["post"].text = ""
+        # if form.errors["title"]:
+        #     context_data["post"].title = ""
+        # context_data["post"].save(update_fields=[key for key in form.errors.keys()])
+
         context_data["comments"] = (
             self.object.comments.all()
             .select_related("author")
