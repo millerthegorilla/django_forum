@@ -93,6 +93,15 @@
 /*table {
   width:100%;
 }*/
+.post-title {
+  border: 0;
+  background-color: white !important;
+  width:  max-content;
+}
+
+.post-title-wrapper {
+  width: max-content;
+}
 
 .posts-and-comments {
   height: 70vh;

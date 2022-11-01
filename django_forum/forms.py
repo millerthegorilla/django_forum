@@ -128,7 +128,7 @@ class ForumProfile(profile_forms.Profile):
 # START POST AND COMMENTS
 
 
-class Post(messages_forms.Message):
+class PostCreate(messages_forms.Message):
     text = forms.CharField(
         error_messages={
             "required": "A post needs some text! - you tried to submit a blank value -\
@@ -149,13 +149,7 @@ class Post(messages_forms.Message):
 
     def __init__(self, user: User = None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        try:
-            post = self.Meta.model.objects.get(author=user)
-        except self.Meta.model.DoesNotExist:
-            post = None
         checked_string = ""
-        if post and post.subscribed_users.filter(username=user.username).count():
-            checked_string = "checked"
         checkbox_string = (
             '<input type="checkbox" id="subscribe_cb" name="subscribe" value="Subscribe" '  # noqa: E501
             + checked_string
@@ -187,6 +181,63 @@ class Post(messages_forms.Message):
         return self.sanitize_text(self.cleaned_data["text"])
 
 
+class PostUpdate(messages_forms.Message):
+    text = forms.CharField(
+        error_messages={
+            "required": "A post needs some text! - you tried to submit a blank value -\
+            reverted to previous entry..."
+        },
+        widget=TinyMCE(),
+    )
+    title = forms.CharField(
+        error_messages={
+            "required": "A post needs a title!\nYou tried to submit a blank value\nreverted to previous entry..."
+        }
+    )
+
+    class Meta:
+        model = forum_models.Post
+        fields = ["title", "title"]
+        widgets = {"text": TinyMCE()}
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        checked_string = ""
+        if self.instance and self.instance.subscribed_users.count():
+            checked_string = "checked"
+        checkbox_string = (
+            '<input type="checkbox" id="subscribe_cb" name="subscribe" value="Subscribe" '  # noqa: E501
+            + checked_string
+            + '> <label for="subscribe_cb" class="tinfo">Subscribe to this post...</label><br>'  # noqa: E501
+        )
+        self.helper = helper.FormHelper()
+        self.helper.form_method = "post"
+        self.helper.form_class = "form-horizontal"
+        self.helper.form_show_labels = False
+        self.helper.form_action = shortcuts.reverse(
+            "django_forum:post_update", args=(self.instance.id, self.instance.slug)
+        )
+        self.helper.form_id = "id-post-update-form"
+        self.helper.form_class = "col-10 col-sm-10 col-md-8 mx-auto"
+        self.helper.layout = layout.Layout(
+            layout.Div(
+                layout.Field(
+                    "title",
+                    readonly="",
+                    wrapper_class="post-title-wrapper",
+                    css_class="post-title flex-fill post-headline",
+                ),
+                layout.HTML("by {{post.author}} at {{post.created_at}}"),
+                layout.Field("text", value=self.instance.text),
+                css_class="d-flex flex-column",
+            ),
+        )
+
+
+# <div id="title-div" {% if title_errors %}class="col-auto border border-danger"{% else %}class="col-auto"{% endif %}>
+#                         <h1><span id="post_title">{{ post.title|safe }}</span></h1>
+#                         <div class="errors">{{ title_errors|linebreaks }}</div>
+#                     </div>
 class Comment(messages_forms.Message):
     text = forms.CharField(widget=forms.TextInput(attrs={"autofocus": "autofocus"}))
 

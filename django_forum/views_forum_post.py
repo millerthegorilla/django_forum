@@ -51,18 +51,18 @@ def send_mod_mail(type: str) -> None:
 class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
     model = forum_models.Post
     template_name = "django_forum/posts_and_comments/forum_post_create_form.html"
-    form_class = forum_forms.Post
+    form_class = forum_forms.PostCreate
 
-    def get_context_data(self, form=None):
-        if form and "text" in form.errors.keys():
-            form.errors["text"] = [
-                "A post needs some text! - you tried to submit a blank value...  Try again :)"
-            ]
-        else:
-            form = self.form_class()
-        return {"form": form}
+    # def get_context_data(self, form=None):
+    #     if form and "text" in form.errors.keys():
+    #         form.errors["text"] = [
+    #             "A post needs some text! - you tried to submit a blank value...  Try again :)"
+    #         ]
+    #     else:
+    #         form = self.form_class()
+    #     return {"form": form}
 
-    def form_valid(self, form: forum_forms.Post) -> http.HttpResponseRedirect:
+    def form_valid(self, form: forum_forms.PostCreate) -> http.HttpResponseRedirect:
         post = form.save(commit=False)
         post.author = self.request.user
         if "subscribe" in self.request.POST:
@@ -208,7 +208,7 @@ class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
     slug_url_kwarg: str = "slug"
     slug_field: str = "slug"
     template_name: str = "django_forum/posts_and_comments/forum_post_detail.html"
-    form_class: forum_forms.Post = forum_forms.Post
+    form_class: forum_forms.PostUpdate = forum_forms.PostUpdate
     comment_form_class: forum_forms.Comment = forum_forms.Comment
 
     def get(self, request: http.HttpRequest, pk: int, slug: str) -> http.HttpResponse:
@@ -219,6 +219,7 @@ class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
         )
         context = self.get_context_data()
         context["post"] = self.object
+        context["form"] = self.form_class(instance=self.object)
         return shortcuts.render(request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
@@ -264,13 +265,13 @@ def subscribe(request) -> http.JsonResponse:
 class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
     model = forum_models.Post
     a_name = "django_forum"
-    form_class = forum_forms.Post
+    form_class = forum_forms.PostUpdate
     comment_form_class = forum_forms.Comment
     template_name = "django_forum/posts_and_comments/forum_post_detail.html"
     pk: None
     slug: None
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: forum_forms.PostUpdate):
         context_data = {
             "form": form,
             "text_errors": form.errors.get("text", ""),
@@ -337,7 +338,7 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
     post_model: forum_models.Post = forum_models.Post
     model: forum_models.Comment = forum_models.Comment
     form_class: forum_forms.Comment = forum_forms.Comment
-    post_form_class: forum_forms.Post = forum_forms.Post
+    post_form_class: forum_forms.PostUpdate = forum_forms.PostUpdate
     template_name = "django_forum/posts_and_comments/forum_post_detail.html"
 
     def form_invalid(self, form):
