@@ -4,6 +4,9 @@
 		<div id='post_text' class="col-12 col-sm-11 col-md-12 col-lg-9 mx-auto my-auto">
 			<div class='ps-4'>
 				{% crispy form %}
+				{% if not post.moderation_data and post.author != user %}
+					{% crispy moderation_form %}
+				{% endif %}
 			    <div class="row justify-content-end mb-3">
 		    		{% if not post.moderation_date and post.author == user %}
 		    		    <div id="modify-post-btns">

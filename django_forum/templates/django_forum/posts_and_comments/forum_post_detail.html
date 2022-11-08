@@ -5,7 +5,7 @@
 {% block extra_css %}
 {% endblock extra_css %}
 {% block form_media %}
-{{ form.media }}
+
 {% endblock form_media %}
 {% block content %}
 <div class="container" class="post-and-comments-container">
@@ -16,5 +16,5 @@
 </div>
 {% endblock %}
 {% block body_js %}
-	{% javascript 'django_forum' %}
+{% javascript 'django_forum_post_detail' %}
 {% endblock body_js %}

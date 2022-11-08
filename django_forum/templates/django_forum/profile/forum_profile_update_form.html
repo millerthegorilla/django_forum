@@ -2,6 +2,7 @@
 {% block title %}{{ siteName }} - Update Profile{% endblock title %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% load pipeline %}
 {% if user.is_authenticated %}
     {% load thumbnail %}
     {% block extra_css %}
@@ -41,6 +42,6 @@
         </div>
     {% endblock content %}
     {% block body_imports %}
-        <script src="{% static 'django_forum/js/profileUpdate.js' %}" type="application/javascript" referrerpolicy="origin"></script>
+        {% javascript 'django_forum_profile_update' %}
     {% endblock body_imports %}
 {% endif %}

@@ -93,6 +93,11 @@
 /*table {
   width:100%;
 }*/
+
+#text {
+  background-color: white;
+}
+
 .post-title {
   border: 0;
   background-color: white !important;

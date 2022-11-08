@@ -210,6 +210,7 @@ class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
     template_name: str = "django_forum/posts_and_comments/forum_post_detail.html"
     form_class: forum_forms.PostUpdate = forum_forms.PostUpdate
     comment_form_class: forum_forms.Comment = forum_forms.Comment
+    moderation_form_class: forum_forms.PostModeration = forum_forms.PostModeration
 
     def get(self, request: http.HttpRequest, pk: int, slug: str) -> http.HttpResponse:
         self.object = self.get_object(
@@ -219,7 +220,9 @@ class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
         )
         context = self.get_context_data()
         context["post"] = self.object
-        context["form"] = self.form_class(instance=self.object)
+        show_buttons = self.object.author == request.user
+        context["form"] = self.form_class(instance=self.object, editable=show_buttons)
+        context["moderation_form"] = self.moderation_form_class(instance=self.object)
         return shortcuts.render(request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
@@ -274,17 +277,10 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
     def form_invalid(self, form: forum_forms.PostUpdate):
         context_data = {
             "form": form,
-            "text_errors": form.errors.get("text", ""),
-            "title_errors": form.errors.get("title", ""),
+            # "text_errors": form.errors.get("text", ""),
+            # "title_errors": form.errors.get("title", ""),
         }
         context_data["post"] = self.model.objects.get(id=self.object.id)
-        breakpoint()
-        # if form.errors["text"]:
-        #     context_data["post"].text = ""
-        # if form.errors["title"]:
-        #     context_data["post"].title = ""
-        # context_data["post"].save(update_fields=[key for key in form.errors.keys()])
-
         context_data["comments"] = (
             self.object.comments.all()
             .select_related("author")
