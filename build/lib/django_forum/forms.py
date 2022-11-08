@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from crispy_forms import helper, layout
 from crispy_bootstrap5 import bootstrap5
 from tinymce.widgets import TinyMCE
+from tinymce import models as tinymce_models
 
 from django import forms, utils, shortcuts
 from django.contrib import auth
@@ -128,19 +129,12 @@ class ForumProfile(profile_forms.Profile):
 # START POST AND COMMENTS
 
 
-class Post(messages_forms.Message):
+class PostCreate(messages_forms.Message):
     text = forms.CharField(
-        error_messages={
-            "required": "A post needs some text! - you tried to submit a blank value -\
-            reverted to previous entry..."
-        },
+        error_messages={"required": "A post needs some text!"},
         widget=TinyMCE(),
     )
-    title = forms.CharField(
-        error_messages={
-            "required": "A post needs a title!\nYou tried to submit a blank value\nreverted to previous entry..."
-        }
-    )
+    title = forms.CharField(error_messages={"required": "A post needs a title!"})
 
     class Meta:
         model = forum_models.Post
@@ -149,13 +143,7 @@ class Post(messages_forms.Message):
 
     def __init__(self, user: User = None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        try:
-            post = self.Meta.model.objects.get(author=user)
-        except self.Meta.model.DoesNotExist:
-            post = None
         checked_string = ""
-        if post and post.subscribed_users.filter(username=user.username).count():
-            checked_string = "checked"
         checkbox_string = (
             '<input type="checkbox" id="subscribe_cb" name="subscribe" value="Subscribe" '  # noqa: E501
             + checked_string
@@ -185,6 +173,101 @@ class Post(messages_forms.Message):
 
     def clean_text(self) -> str:
         return self.sanitize_text(self.cleaned_data["text"])
+
+
+class PostUpdate(messages_forms.Message):
+    text = forms.CharField(
+        error_messages={"required": "A post needs some text!"},
+        widget=TinyMCE(
+            attrs={"required": "true", "readonly": ""},
+            mce_attrs={
+                "selector": "#tinymce-text",
+                "init_instance_callback": "onInstanceInit",
+            },
+        ),
+    )
+
+    title = forms.CharField(error_messages={"required": "A post needs a title!"})
+
+    class Meta:
+        model = forum_models.Post
+        fields = ["title", "text"]
+        # widgets = {"text": TinyMCE(attrs={"init_instance_callback": "onInstanceInit"})}
+
+    def __init__(self, editable=True, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        checked_string = ""
+
+        self.fields["text"].initial = self.sanitize_text(self.instance.text)
+        if self.instance and self.instance.subscribed_users.count():
+            checked_string = "checked"
+        checkbox_string = (
+            '<input type="checkbox" id="subscribe_cb" name="subscribe" value="Subscribe" '  # noqa: E501
+            + checked_string
+            + '> <label for="subscribe_cb" class="tinfo">Subscribe to this post...</label><br>'  # noqa: E501
+        )
+        self.helper = helper.FormHelper()
+        self.helper.form_method = "post"
+        self.helper.form_class = "form-horizontal"
+        self.helper.form_show_labels = False
+        self.helper.form_action = shortcuts.reverse(
+            "django_forum:post_update", args=(self.instance.id, self.instance.slug)
+        )
+        self.helper.form_id = "id-post-update-form"
+        self.helper.form_class = "col-10 col-sm-10 col-md-8 mx-auto"
+        if self.instance.moderation_date:
+            text = layout.HTML(
+                "<div>This post has been reported and is awaiting moderation.  Comments are locked until the post has been validated.</div>"  # noqa: E501
+            )
+        if editable:
+            text = layout.Field("text", id="tinymce-text")
+            edit_buttons = layout.HTML(
+                '<div class="ms-auto"> \
+                    <div class="post-edit-div"> \
+                        <div class="mt-3"> \
+                            <button id="editor-cancel-btn" type="button" class="ms-auto col-auto btn btn-secondary me-2">Cancel</button> \
+                            <button id="editor-submit-btn" type="submit" class="me-auto col-auto btn btn-primary">Save Post</button> \
+                        </div> \
+                    </div> \
+                </div>'
+            )
+        else:
+            text = layout.Div("text", id="tinymce-text")
+            edit_buttons = layout.HTML("")
+
+        self.helper.layout = layout.Layout(
+            layout.Div(
+                layout.Field(
+                    "title",
+                    id="title-input",
+                    wrapper_class="post-title-wrapper",
+                    css_class="post-title flex-fill post-headline",
+                ),
+                layout.HTML("by {{post.author}} at {{post.created_at}}"),
+                text,
+                layout.HTML("<div id='text-div'></div>"),
+                edit_buttons,
+                layout.HTML(checkbox_string),
+                css_class="d-flex flex-column",
+            ),
+        )
+
+
+class PostModeration(forms.Form):
+    def __init__(self, instance=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = helper.FormHelper()
+        self.helper.form_method = "post"
+        self.helper.form_class = "form-horizontal"
+        self.helper.form_show_labels = False
+        self.helper.form_action = shortcuts.reverse(
+            "django_forum:post_report", args=(instance.id, instance.slug)
+        )
+        self.helper.form_id = "id-post-update-form"
+        self.helper.form_class = "col-10 col-sm-10 col-md-8 mx-auto"
+        self.helper.layout = layout.Layout(
+            layout.Submit("submit", "Report Post for Moderation")
+        )
 
 
 class Comment(messages_forms.Message):

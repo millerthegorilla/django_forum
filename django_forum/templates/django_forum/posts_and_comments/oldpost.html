@@ -1,0 +1,60 @@
+            <form method="post" action="{% url 'django_forum:post_update' post.pk post.slug %}">
+                <div class="row align-items-end tinfo post-headline mb-2">
+                    <div id="title-div" {% if title_errors %}class="col-auto border border-danger"{% else %}class="col-auto"{% endif %}>
+                        <h1><span id="post_title">{{ post.title|safe }}</span></h1>
+                        <div class="errors">{{ title_errors|linebreaks }}</div>
+                    </div>
+                    <div class="post-edit-div">
+                        <input id="title_input" name="title">
+                    </div>
+                    <div class="col-auto">
+                        <h1><span class="text-dark ps-2">by</span></h1>
+                    </div>
+                    <div class="col-auto">
+                        <h3>{{ post.author.profile.display_name }}</h3>
+                    </div>
+                    <div class="col-auto">
+                        <h3><span class="text-dark ps-3">on</span></h3>
+                    </div>
+                    <div class="col-auto">
+                        <h4>{{ post.created_at }}</h4>
+                    </div>
+                </div>
+                <div class="tinfo row justify-content-start mb-2">
+                    <div class="col-auto"><input type='checkbox' id='subscribed_cb' {% if subscribed %}checked{% endif %}><label for="subscribed_cb" class="ps-2">{% if subscribed %}Subscribed{% else %}Subscribe{% endif %} to this thread</label></div>
+                </div>
+                <div class="row ms-auto mb-2">
+                    {% if not post.moderation_date %}
+                    <div id="textarea" class="col-auto" required="">{{ post.text|safe }}</div>
+                    <div id="text-errors" {% if text_errors %}class="errors ms-auto border border-danger"{% else %}class="col-auto"{% endif %}>{{ text_errors }}</div>
+                    {% else %}
+                    <div>This post has been reported and is awaiting moderation.  Comments are locked until the post has been validated.</div>
+                    {% endif %}
+                    {% if post.author == user %}
+                        <div class="ms-auto">
+                                {% csrf_token %}
+                                <div class="post-edit-div">
+                                    <input type="textarea" name="text" class="update-form-text"></input>
+                                    <input type="hidden" name="type" value="update">
+                                    <div class="mt-3">
+                                        <button id="editor-cancel-btn" type="button" class="ms-auto col-auto btn btn-secondary me-2">Cancel</button>
+                                        <button id="editor-submit-btn" type="submit" class="me-auto col-auto btn btn-primary">
+                                        Save Post</button>
+                                    </div>
+                                </div>
+                        </div>
+                    {% else %}
+                        {% if not post.moderation_date and post.author != user %}
+                        <div class="ms-auto">
+                            <form method="post" action="{% url 'django_forum:post_report' %}" id="form-report-post">
+                                {% csrf_token %}
+                                <input id="post-id" type="hidden" name="post-id" value="{{ post.id }}">
+                                <input id="post-slug" type="hidden" name="post-slug" value="{{ post.slug }}">
+                                <div class="tinfo">
+                                    <a class="report-post text-warning" href="#">Report Post for Moderation</a>
+                                </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                </form>

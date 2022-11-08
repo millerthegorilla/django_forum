@@ -28,7 +28,9 @@ postview_patterns = [
         name="post_delete",
     ),
     urls.path(
-        "report_post/", forum_post_views.ReportPost.as_view(), name="post_report"
+        "report_post/<int:pk>/<slug:slug>",
+        forum_post_views.ReportPost.as_view(),
+        name="post_report",
     ),
     urls.path(
         "create_comment/<int:pk>/<slug:slug>/",

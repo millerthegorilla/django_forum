@@ -1,0 +1,39 @@
+arrow==1.2.3
+asgiref==3.5.2
+attrs==22.1.0
+bleach==5.0.1
+blessed==1.19.1
+clamd==1.0.2
+crispy-bootstrap5==0.7
+deprecation==2.1.0
+Django==4.1.2
+django-crispy-forms==1.14.0
+django-email-verification==0.3.1
+django-messages @ git+https://github.com/millerthegorilla/django_messages@3455184a9ac92e97f8fcae1809bfee1bc2ed71d0
+django-picklefield==3.1
+django-profile @ git+https://github.com/millerthegorilla/django_profile@27d62183d7c215dc498cb2cf29430cb894c9b826
+django-q==1.3.9
+django-recaptcha==3.0.0
+django-users @ git+https://git@github.com/millerthegorilla/django_users@f5cd8ff6263f81651b55e11c8097d7d21ab19793
+ffmpeg==1.4
+fuzzywuzzy==0.18.0
+iniconfig==1.1.1
+Levenshtein==0.20.5
+packaging==21.3
+Pillow==9.2.0
+pluggy==1.0.0
+py==1.11.0
+PyJWT==2.5.0
+pyparsing==3.0.9
+pytest==7.1.3
+python-dateutil==2.8.2
+python-Levenshtein==0.20.5
+python-magic==0.4.27
+rapidfuzz==2.11.1
+redis==3.5.3
+safe-imagefield @ git+https://github.com/millerthegorilla/safe_imagefield@bed96a8139f7fee8b87337f323ec10b8e3de40ad
+six==1.16.0
+sqlparse==0.4.3
+tomli==2.0.1
+wcwidth==0.2.5
+webencodings==0.5.1

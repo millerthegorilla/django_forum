@@ -30,7 +30,6 @@ django_forum/__pycache__/documents.cpython-310.pyc
 django_forum/__pycache__/forms.cpython-310.pyc
 django_forum/__pycache__/forms_custom_registration.cpython-310.pyc
 django_forum/__pycache__/models.cpython-310.pyc
-django_forum/__pycache__/tasks.cpython-310.pyc
 django_forum/__pycache__/urls.cpython-310.pyc
 django_forum/__pycache__/views.cpython-310.pyc
 django_forum/__pycache__/views_forum_post.cpython-310.pyc
@@ -48,7 +47,7 @@ django_forum/static/django_forum/css/styles.css
 django_forum/static/django_forum/images/yellow-pin.png
 django_forum/static/django_forum/js/anchor.js
 django_forum/static/django_forum/js/autocomplete.js
-django_forum/static/django_forum/js/forum_post_detail.js
+django_forum/static/django_forum/js/forumPostDetail.js
 django_forum/static/django_forum/js/postCreate.js
 django_forum/static/django_forum/js/profileUpdate.js
 django_forum/templates/links.html
@@ -58,6 +57,7 @@ django_forum/templates/django_forum/posts_and_comments/comment.html
 django_forum/templates/django_forum/posts_and_comments/forum_post_create_form.html
 django_forum/templates/django_forum/posts_and_comments/forum_post_detail.html
 django_forum/templates/django_forum/posts_and_comments/forum_post_list.html
+django_forum/templates/django_forum/posts_and_comments/oldpost.html
 django_forum/templates/django_forum/posts_and_comments/post.html
 django_forum/templates/django_forum/posts_and_comments/post_list.html
 django_forum/templates/django_forum/profile/forum_profile_update_form.html
@@ -254,6 +254,7 @@ django_forum/testapp/static/django_forum/css/styles.css
 django_forum/testapp/static/django_forum/images/yellow-pin.png
 django_forum/testapp/static/django_forum/js/anchor.js
 django_forum/testapp/static/django_forum/js/autocomplete.js
+django_forum/testapp/static/django_forum/js/forumPostDetail.js
 django_forum/testapp/static/django_forum/js/forum_post_detail.js
 django_forum/testapp/static/django_forum/js/postCreate.js
 django_forum/testapp/static/django_forum/js/profileUpdate.js
