@@ -275,12 +275,17 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
     slug: None
 
     def form_invalid(self, form: forum_forms.PostUpdate):
+        # breakpoint()
+        # if form.errors:
+        #     if form["text"].value() == "":
+        #         form.cleaned_data["text"] = self.object.text
+        breakpoint()
         context_data = {
             "form": form,
             # "text_errors": form.errors.get("text", ""),
             # "title_errors": form.errors.get("title", ""),
         }
-        context_data["post"] = self.model.objects.get(id=self.object.id)
+        context_data["post"] = self.object
         context_data["comments"] = (
             self.object.comments.all()
             .select_related("author")

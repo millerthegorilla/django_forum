@@ -194,6 +194,21 @@ class PostUpdate(messages_forms.Message):
         fields = ["title", "text"]
         # widgets = {"text": TinyMCE(attrs={"init_instance_callback": "onInstanceInit"})}
 
+    def clean(self):
+        breakpoint()
+        if self["text"].value() == "":
+            self.cleaned_data["text"] = self.initial["text"]
+            self.data = self.data.copy()
+            self.data["text"] = self.initial["text"]
+
+        return self.cleaned_data
+
+    def clean_text(self):
+        breakpoint()
+        super().clean_text()
+        if self.cleaned_data["text"] == "":
+            return self.initial["text"]
+
     def __init__(self, editable=True, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         checked_string = ""

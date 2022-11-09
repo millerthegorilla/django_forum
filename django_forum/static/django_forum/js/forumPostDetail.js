@@ -1,8 +1,11 @@
+window['title'] = "";
+window['text'] = "";
+
 function EditPost() {
   // $('.update-form-text').val($('#textarea').html())
   $('#text-div').hide()
   //$('#tinymce-text').show();
-  tinymce.editors[0].show()
+  $('#div_id_text').show()
   $('#title-input').prop("readonly", false);
   $('#title-input').css({"border-color": "#C1E0FF",
              "border-width":"1px",
@@ -16,11 +19,21 @@ function EditPost() {
   }
 }
 
-function HideEditPost(){
-    $('#modify-post-btns').hide();
-    if (!($('#error_1_id_text').length || $('#error_0_id_text').length))
-    {
-      tinymce.editors[0].hide()
+function HideEditPost(cancel){
+    // $('#modify-post-btns').hide();
+      //console.log($('#text-div').html())
+
+      // try using a hidden html field to store the initial values
+      
+      if (!$('#error_1_id_text').length)
+      {
+        tinymce.editors[0].setContent($('#text-div').html())
+      }
+      if(!$('#error_0_id_text').length)
+      {
+        $('#title-input').val(window['title'])
+      }
+      $('#div_id_text').hide()
       $('#title-input').prop("readonly", true);
       $('#title-input').css('border','');
       // put tinymce content into div
@@ -38,7 +51,7 @@ function HideEditPost(){
           $('#post_title').html(bob)
       }
       $('#modify-post-btns').show();
-    }
+   // }
 }
 
 function getCookie(name) {
@@ -76,24 +89,26 @@ function hideUpdateComment(id) {
 
 function onInstanceInit(editor) {
     var bob = tinymce.editors[0].getContent();
+    console.log(bob)
     if (bob != undefined)
     {
       $('#text-div').html(bob);
     }
     $(editor.getContainer()).find('button.tox-statusbar__wordcount').click();
+    window['title'] = $('#title-input').val()
+    window['text'] = tinymce.editors[0].getContent() 
+    HideEditPost()
 }
 
 $(document).ready(function () {
-
   $("#tinymce-text").keyup(function(){
     $("#count").text("...characters left: " + String(500 - $(this).val().length));
   });
-  HideEditPost()
 	$('#editor-btn').on("click", function( event ) {
       EditPost()
   });
   $('#editor-cancel-btn').on("click", function( event ) {
-      HideEditPost()
+      HideEditPost("cancel")
   });
 	$('.comment-save').on("click", function( event ) {
   		event.preventDefault();
