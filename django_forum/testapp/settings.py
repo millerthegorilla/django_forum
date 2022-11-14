@@ -38,6 +38,7 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 INSTALLED_APPS = [
     "django_forum",
+    "django_messages",
     "pipeline",
     "django_users",
     "crispy_forms",
@@ -284,7 +285,7 @@ DELETION_TIMEOUT = {
 
 # django messages
 # NUMBER_OF_MESSAGES_PER_PAGE = 6
-ABSTRACTMESSAGE = True
+ABSTRACTMESSAGE = False
 
 # django_profile
 ABSTRACTPROFILE = True

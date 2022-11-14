@@ -136,7 +136,7 @@ class PostCreate(messages_forms.Message):
     )
     title = forms.CharField(error_messages={"required": "A post needs a title!"})
 
-    class Meta:
+    class Meta(messages_forms.Message.Meta):
         model = forum_models.Post
         fields = ["text", "title"]
         widgets = {"text": TinyMCE()}
@@ -191,23 +191,23 @@ class PostUpdate(messages_forms.Message):
 
     class Meta:
         model = forum_models.Post
-        fields = ["title", "text"]
+        fields = ["title"]
         # widgets = {"text": TinyMCE(attrs={"init_instance_callback": "onInstanceInit"})}
 
-    def clean(self):
-        breakpoint()
-        if self["text"].value() == "":
-            self.cleaned_data["text"] = self.initial["text"]
-            self.data = self.data.copy()
-            self.data["text"] = self.initial["text"]
+    # def clean(self):
+    #     breakpoint()
+    #     if self["text"].value() == "":
+    #         self.cleaned_data["text"] = self.initial["text"]
+    #         self.data = self.data.copy()
+    #         self.data["text"] = self.initial["text"]
 
-        return self.cleaned_data
+    #     return self.cleaned_data
 
-    def clean_text(self):
-        breakpoint()
-        super().clean_text()
-        if self.cleaned_data["text"] == "":
-            return self.initial["text"]
+    # def clean_text(self):
+    #     breakpoint()
+    #     super().clean_text()
+    #     if self.cleaned_data["text"] == "":
+    #         return self.initial["text"]
 
     def __init__(self, editable=True, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -267,6 +267,10 @@ class PostUpdate(messages_forms.Message):
             ),
         )
 
+    def clean(self):
+        breakpoint()
+        return super().clean()
+
 
 class PostModeration(forms.Form):
     def __init__(self, instance=None, *args, **kwargs):
@@ -318,18 +322,19 @@ class Comment(messages_forms.Message):
         self.helper.form_method = "post"
         self.helper.form_class = "col-auto"
 
-    def clean_text(self) -> str:
-        breakpoint()
-        if self.cleaned_data["text"] and not self.sanitize_text(
-            self.cleaned_data["text"]
-        ):
-            if "text" in self.errors and type(self.errors["text"]) == list:
-                self.errors["text"].append("That is not allowed here")
-            else:
-                self.errors["text"] = [
-                    self.errors["text"] if "text" in self.errors else "",
-                    "That is not allowed here",
-                ]
+    # def clean_text(self) -> str:
+    #     breakpoint()
+    #     if self.cleaned_data["text"] and not self.sanitize_text(
+    #         self.cleaned_data["text"]
+    #     ):
+    #         if "text" in self.errors and type(self.errors["text"]) == list:
+    #             self.errors["text"].append("That is not allowed here")
+    #         else:
+    #             self.errors["text"] = [
+    #                 self.errors["text"] if "text" in self.errors else "",
+    #                 "That is not allowed here",
+    #             ]
+    #     return self.cleaned_data['text']
 
 
 ## TODO add choices field to search page

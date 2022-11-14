@@ -68,7 +68,6 @@ class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
         if "subscribe" in self.request.POST:
             post.subscribed_users.add(self.request.user)
         post.save()
-        breakpoint()
         return shortcuts.redirect(self.get_success_url(post))
 
     def get_success_url(self, post: forum_models.Post, *args, **kwargs) -> str:
@@ -197,7 +196,7 @@ class PostList(auth.mixins.LoginRequiredMixin, messages_views.MessageList):
 
 @utils.decorators.method_decorator(cache.never_cache, name="dispatch")
 @utils.decorators.method_decorator(cache.never_cache, name="get")
-class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
+class PostView(auth.mixins.LoginRequiredMixin, messages_views.MessageView):
     """
     TODO: Replace superclass form processing if conditions with separate urls/views
           and overload them individually here, where necessary, instead of redefining
@@ -265,7 +264,7 @@ def subscribe(request) -> http.JsonResponse:
         return http.JsonResponse({"error": ""}, status=500)
 
 
-class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
+class PostUpdate(auth.mixins.LoginRequiredMixin, messages_views.MessageUpdate):
     model = forum_models.Post
     a_name = "django_forum"
     form_class = forum_forms.PostUpdate
@@ -274,12 +273,16 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
     pk: None
     slug: None
 
+    def form_valid(self, form: forum_forms.PostUpdate):
+        return super().form_valid(form)
+
     def form_invalid(self, form: forum_forms.PostUpdate):
+        breakpoint()
+        super().form_invalid(form)
         # breakpoint()
         # if form.errors:
         #     if form["text"].value() == "":
         #         form.cleaned_data["text"] = self.object.text
-        breakpoint()
         context_data = {
             "form": form,
             # "text_errors": form.errors.get("text", ""),
@@ -293,6 +296,7 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
             .select_related("author__profile__avatar")
         )
         context_data["comment_form"] = self.comment_form_class()
+        # return super().form_invalid(form)
         return shortcuts.render(self.request, self.template_name, context_data)
 
     # def post(
