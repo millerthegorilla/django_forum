@@ -39,8 +39,9 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 INSTALLED_APPS = [
     "django_forum",
     "django_messages",
-    "pipeline",
+    "django_profile",
     "django_users",
+    "pipeline",
     "crispy_forms",
     "crispy_bootstrap5",
     "captcha",
@@ -165,8 +166,6 @@ STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(FILES_ROOT, STATIC_URL)
 if not os.path.isdir(STATIC_ROOT):
     raise (NotADirectoryError)
-
-# STATICFILES_DIRS = (os.path.join(FILES_ROOT, "static"),)
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = os.path.join(FILES_ROOT, MEDIA_URL)
@@ -327,7 +326,7 @@ SITE_NAME = "django_forum_test_app"
 THUMBNAIL_FORMAT = "PNG"
 
 # django-pipeline
-STATICFILES_STORAGE = "pipeline.storage.PipelineManifestStorage"
+STATICFILES_STORAGE = "pipeline.storage.PipelineStorage"
 
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -348,7 +347,8 @@ default_js_extra_content = {
 }
 
 PIPELINE = {
-    "PIPELINE_ENABLED": False,
+    # "PIPELINE_COLLECTOR_ENABLED": True,
+    # "PIPELINE_ENABLED": True,
     "JS_COMPRESSOR": "pipeline.compressors.jsmin.JSMinCompressor",
     "CSS_COMPRESSOR": "pipeline.compressors.csshtmljsminify.CssHtmlJsMinifyCompressor",  # noqa: E501
     "STYLESHEETS": {
@@ -364,18 +364,21 @@ PIPELINE = {
         },
     },
     "JAVASCRIPT": {
-        "django_forum_post_create": {
-            "source_filenames": ("django_forum/js/postCreate.js",),
+        "forum_post_create": {
+            "source_filenames": ("django_forum/js/post_create.js",),
             "output_filename": "django_forum/js/df_pc_min.js",
             "extra_context": default_js_extra_content,
         },
-        "django_forum_post_detail": {
-            "source_filenames": ("django_forum/js/forumPostDetail.js", "anchor.js"),
+        "forum_post_detail": {
+            "source_filenames": ("django_forum/js/forum_post_detail.js",),
             "output_filename": "django_forum/js/df_pd_min.js",
             "extra_context": default_js_extra_content,
         },
-        "django_forum_profile_update": {
-            "source_filenames": ("django_forum/js/profileUpdate.js", "anchor.js"),
+        "forum_profile_update": {
+            "source_filenames": (
+                "django_forum/js/profile_update.js",
+                "anchor.js",
+            ),
             "output_filename": "django_forum/js/df_pu_min.js",
             "extra_context": default_js_extra_content,
         },

@@ -28,7 +28,8 @@
       tag: django_forum_test_image
       path: ./dockerfile_python
       build:
-        cache: no
+          cache: no
+          extra_args: "-f './dockerfile_python/Dockerfile_Test'"
       state: build
     register: build_output
   - debug: var=build_output
@@ -43,12 +44,16 @@
       state: started
       # env: {"TEST_RUN": "{{ lookup('ansible.builtin.env', 'TEST_RUN', default='False') }}" }
       recreate: yes
-      detach: no
+      detach: yes
       volume:
-          - "{{ playbook_dir}}/../../../django_forum:/opt/ceramic_isles_test:Z"
+          - "{{ playbook_dir }}/../../../django_forum:/opt/ceramic_isles_test:Z"
       pod: django_forum_test_pod
     register: output
   - debug: var=output.stdout_lines
+  - name: test podman exec
+    shell: podman exec -it django_forum_test_cont bash -c 'source /opt/ceramic_isles_test/venv_django_forum/bin/activate && pip install -r /opt/ceramic_isles_test/django_forum/testapp/dockerfile_python/pip_requirements'
+    register: pip_output
+  - debug: var=pip_output.stdout_lines
   - name: test pytest output
     shell: echo '{{ output.stdout }}'
     register: test_output

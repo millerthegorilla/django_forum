@@ -198,12 +198,6 @@ class Post(messages_models.Message):
         User, blank=True, related_name="subscribed_posts"
     )
     commenting_locked: db_models.BooleanField = db_models.BooleanField(default=False)
-    author: db_models.ForeignKey = db_models.ForeignKey(
-        User,
-        on_delete=db_models.DO_NOTHING,
-        null=False,
-        related_name="%(app_label)s_%(class)s_related",
-    )
 
     class Meta(messages_models.Message.Meta):
         app_label = "django_forum"

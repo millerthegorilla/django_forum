@@ -68,7 +68,6 @@ class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
         if "subscribe" in self.request.POST:
             post.subscribed_users.add(self.request.user)
         post.save()
-        breakpoint()
         return shortcuts.redirect(self.get_success_url(post))
 
     def get_success_url(self, post: forum_models.Post, *args, **kwargs) -> str:
@@ -277,7 +276,6 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
             "title_errors": form.errors.get("title", ""),
         }
         context_data["post"] = self.model.objects.get(id=self.object.id)
-        breakpoint()
         # if form.errors["text"]:
         #     context_data["post"].text = ""
         # if form.errors["title"]:

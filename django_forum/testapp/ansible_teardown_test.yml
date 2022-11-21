@@ -1,9 +1,12 @@
 ---
-- name: provisioning django_messages testapp
+- name: provisioning django_forum testapp
   hosts: localhost
   tasks:
-  - name: Stop and Remove Redis Container
-    containers.podman.podman_container:
-      name: myredis
-      image: docker.io/library/redis
-      state: absent
+  - name: Stop Pod
+    containers.podman.podman_pod:
+      name: django_forum_test_pod
+      state: stopped
+  # - name: Remove Database
+  #   shell: rm ../db.sqlite3
+  #   register: output
+  # - debug: var=output.stdout_lines

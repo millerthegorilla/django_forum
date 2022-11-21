@@ -78,6 +78,7 @@ $(document).ready(function () {
   });
   $('#editor-cancel-btn').on("click", function( event ) {
       HideEditPost()
+      $('#text-errors').hide()
   });
 	$('.comment-save').on("click", function( event ) {
   		event.preventDefault();

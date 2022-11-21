@@ -42,9 +42,9 @@ django-dbbackup
 mypy
 django-stubs
 ipython # 8.4.0
-# django-pipeline
+django-pipeline
 # git+https://github.com/millerthegorilla/django-pipeline.git@main
-django-pipeline @ git+https://github.com/millerthegorilla/django-pipeline#egg=django-pipeline
+# django-pipeline @ git+https://github.com/millerthegorilla/django-pipeline#egg=django-pipeline
 # git+https://github.com/millerthegorilla/django_artisan.git@main
 jsmin
 faker

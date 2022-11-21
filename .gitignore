@@ -1,6 +1,6 @@
-venv
-venv/**/*
-*/__pycache__/
+venv_django_forum
+venv_django_forum/**/*
+*/**/__pycache__/
 db.sqlite3
 django_forum/testapp/media/**/*
 django_forum/testapp/static/**/*
