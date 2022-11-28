@@ -1,5 +1,4 @@
 function EditPost() {
-  console.log("edit post function")
   $('.update-form-text').val($('#textarea').html())
   $('#title_input').val($('#post_title').html())
   $('.post-edit-div').show();
@@ -15,7 +14,6 @@ function HideEditPost(){
     $('.update-form-text').hide()
     $('.post-edit-div').hide()
     let bob=$('#title_input').val()
-    console.log("bob is " + bob)
     $('#post_title').html(bob)
     $('#textarea').html($('.update-form-text').val())
     $('#title-div').show()
@@ -111,7 +109,6 @@ $(document).ready(function () {
     'toolbar': "undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist checklist | forecolor backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons | fullscreen  preview save print | insertfile image media template link anchor | a11ycheck ltr rtl | showcomments addcomment table",
     'custom_undo_redo_levels': "10",
 	});
-	//tinymce.editors[0].hide()
   var commentModal = document.getElementById('commentModal')
   if (commentModal != null)
   {

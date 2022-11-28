@@ -339,6 +339,7 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
     template_name = "django_forum/posts_and_comments/forum_post_detail.html"
 
     def form_invalid(self, form):
+        breakpoint()
         post = self.post_model.objects.get(
             pk=self.kwargs["pk"], slug=self.kwargs["slug"]
         )
@@ -355,7 +356,6 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
 
     def form_valid(self, form):
         comment = form.save(commit=False)
-        comment.author = self.request.user
         comment.post_fk = self.post_model.objects.get(id=self.kwargs["pk"])
         comment.slug = defaultfilters.slugify(
             comment.text[:4]

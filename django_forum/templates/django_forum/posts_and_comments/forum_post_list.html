@@ -34,7 +34,7 @@
             {% include './post_list.html' %}
             {% if is_a_search is True and search > 0 %}
             <div class="row justify-content-center">
-                <a href='{% url "django_artisan:post_list_view" %}' class="btn btn-primary mb-4 col-auto">Clear Search Results</a>
+                <a href='{% url "django_forum:post_list_view" %}' class="btn btn-primary mb-4 col-auto">Clear Search Results</a>
             </div>
             {% endif %}
         </div>

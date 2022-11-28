@@ -234,7 +234,6 @@ except AttributeError:
 
 
 class Comment(messages_models.Message):
-    # author: models.CharField = models.CharField(default='', max_length=40)
     post_fk: db_models.ForeignKey = db_models.ForeignKey(
         post_model, on_delete=db_models.CASCADE, related_name="comments"
     )

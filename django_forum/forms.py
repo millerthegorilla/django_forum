@@ -183,13 +183,6 @@ class Post(messages_forms.Message):
     def clean_title(self) -> str:
         return self.sanitize_text(self.cleaned_data["title"])
 
-    # def clean_text(self) -> str:
-    #     return self.sanitize_text(self.cleaned_data["text"])
-
-    def clean(self):
-        breakpoint()
-        super().clean()
-
 
 class Comment(messages_forms.Message):
     text = forms.CharField(widget=forms.TextInput(attrs={"autofocus": "autofocus"}))
@@ -199,6 +192,10 @@ class Comment(messages_forms.Message):
         fields = messages_forms.Message.Meta.fields
 
     def __init__(self, *args, **kwargs) -> None:
+        if "data" in kwargs:
+            temp = kwargs["data"].copy()
+            temp["author"] = User.objects.get(username=kwargs["data"]["author"])
+            kwargs["data"] = temp
         super().__init__(*args, **kwargs)
         # self.auto_id = False
         self.helper.layout = layout.Layout(
@@ -223,19 +220,6 @@ class Comment(messages_forms.Message):
         self.helper.form_id = "id-post-create-form"
         self.helper.form_method = "post"
         self.helper.form_class = "col-auto"
-
-    def clean_text(self) -> str:
-        breakpoint()
-        if self.cleaned_data["text"] and not self.sanitize_text(
-            self.cleaned_data["text"]
-        ):
-            if "text" in self.errors and type(self.errors["text"]) == list:
-                self.errors["text"].append("That is not allowed here")
-            else:
-                self.errors["text"] = [
-                    self.errors["text"] if "text" in self.errors else "",
-                    "That is not allowed here",
-                ]
 
 
 ## TODO add choices field to search page

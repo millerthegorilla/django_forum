@@ -13,7 +13,7 @@
                                     <a href="/people/{{comment.author}}/">{% thumbnail comment.author.profile.avatar.image_file "40x40" crop="center" as im %}
                                         <img src="{{ im.url }}" height="{{ im.height }}" width="{{ im.width }}" class="rounded-circle me-1" value="image-{{ forloop.counter }}" title="{{comment.author}}"></img></a>
                                     {% endthumbnail %}
-    		                	    <a class="col-1" href="{{request.path}}#{{comment.slug}}" id="{{ comment.slug }}"><h2 class="text-warning me-1">#</h2></a>
+    		                	    <a class="comment-link col-1" href="{{request.path}}#{{comment.slug}}" id="{{ comment.slug }}"><h2 class="text-warning me-1">#</h2></a>
 		                				{% if not comment.moderation_date %}
     			                	<div id="comment-text-{{ forloop.counter }}" class="comment-text">
     			                        {{ comment.text|linebreaks|urlize|safe }}
@@ -26,6 +26,7 @@
                             <div id="comment-form-buttons-{{ forloop.counter }}" class="comment-form-buttons">
                             	<form method="post" action="{% url 'django_forum:comment_update' comment.id comment.slug %}" id="comment-update-form-{{ forloop.counter }}" class="comment-update-form">
                             		{% csrf_token %}
+                            		<input type="hidden" name="author" value="{{ user }}">
                             		<div class="row">
                             			<div class="col-auto">
                                     		<textarea id="comment-textarea-{{ forloop.counter }}" form="comment-update-form-{{ forloop.counter }}" wrap="hard" rows="6" cols="60" class="comment-textarea" name="text"></textarea>
@@ -75,7 +76,7 @@
             <div class="row">
 	            <div class="card-body mx-auto">
 	                <form id="comment-form" method="post" action="{% url 'django_forum:comment_create' post.id post.slug %}" class="comment-form">
-	                <input type="hidden" name="type" value="comment">
+	                <input type="hidden" name="author" value="{{ user }}">
 	                  {% crispy comment_form %}
 	                  {% csrf_token %}
 	                </form>

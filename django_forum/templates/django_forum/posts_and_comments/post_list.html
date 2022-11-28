@@ -11,10 +11,11 @@
                         <th>Date</th>
                     </tr>
                         {% for post in page_obj.object_list %}
+                            {% if not post.moderation_date %}
                             <tr >
                                     <td>
                                         {% thumbnail post.author.profile.avatar.image_file "50x50" crop="center" as im %}
-                                            <img src="{{ im.url }}" height="{{ im.height }}" width="{{ im.width }}" class="rounded-circle" id="image-{{ post.user_profile.display_name }}_avatar-image" title="{{post.user_profile.display_name}}" />
+                                            <img src="{{ im.url }}" height="{{ im.height }}" width="{{ im.width }}" class="rounded-circle" id="image-{{ post.user_profile.display_name }}_avatar-image" title="{{ post.author.profile.display_name }}" alt="{{ post.author.profile.display_name }}"/>
                                         {% endthumbnail %}
                                     </td>
                                     <td>
@@ -30,6 +31,7 @@
                                         {{ post.created_at|date }}
                                     </td>
                             </tr>
+                            {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>

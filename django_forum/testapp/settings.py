@@ -15,6 +15,10 @@ from pathlib import Path
 from django import urls
 from django.utils import timezone
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -48,6 +52,7 @@ INSTALLED_APPS = [
     "django_q",
     "sorl.thumbnail",
     "tinymce",
+    "django_elasticsearch_dsl",
     "django_email_verification",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -284,7 +289,7 @@ DELETION_TIMEOUT = {
 
 # django messages
 # NUMBER_OF_MESSAGES_PER_PAGE = 6
-ABSTRACTMESSAGE = False
+ABSTRACTMESSAGE = True
 
 # django_profile
 ABSTRACTPROFILE = True
@@ -385,6 +390,28 @@ PIPELINE = {
     },
 }
 
+from elasticsearch import RequestsHttpConnection
+
+pw = os.getenv("ELASTIC_PASSWORD")
+http_auth = ("elastic", pw)
+print(http_auth)
+# elasticsearch
+ELASTICSEARCH_DSL = {
+    "default": {
+        "hosts": ["https://localhost:9200"],
+        "use_ssl": True,
+        # "verify_certs": False,
+        "http_auth": http_auth,
+        "ca_certs": "/etc/certs/http_ca.crt",  # "/path/to/cert.crt",
+        "connection_class": RequestsHttpConnection,
+    },
+}
+
+#         "http_auth": ("user", "secret"),
+#         "scheme": "https",
+#         "port": "9200",
+#     }
+# }
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

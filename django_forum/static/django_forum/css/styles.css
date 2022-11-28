@@ -130,6 +130,10 @@
   color:yellow;
 }
 
+.comment-link {
+  outline: none;
+}
+
 .comment-form-buttons {
   display: none;
 }

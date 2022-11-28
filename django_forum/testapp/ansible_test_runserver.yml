@@ -16,7 +16,7 @@
       image: docker.io/library/redis
       command: redis-server --appendonly yes
       state: started
-      recreate: yes
+      recreate: true
       pod: django_forum_test_pod
   - name: Pull Python Image
     containers.podman.podman_image:
@@ -28,18 +28,18 @@
       tag: django_forum_test_image
       path: ./dockerfile_python
       build:
-        cache: no
+        cache: false
       state: build
   - name: Create custom container
     containers.podman.podman_container:
       name: django_forum_test_cont
       image: localhost/python:django_forum_test_image
       state: started
-      env: {"TESTRUN": True}
-      recreate: yes
-      detach: no
+      env: {"TESTRUN": true}
+      recreate: true
+      detach: false
       volume:
-          - "{{ playbook_dir}}/../../../django_forum:/opt/ceramic_isles_test:Z"
+        - "{{ playbook_dir}}/../../../django_forum:/opt/ceramic_isles_test:Z"
       pod: django_forum_test_pod
     register: output
   - debug: var=output.stdout_lines

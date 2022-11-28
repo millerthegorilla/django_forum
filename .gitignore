@@ -1,3 +1,4 @@
+.env
 venv_django_forum
 venv_django_forum/**/*
 */**/__pycache__/
