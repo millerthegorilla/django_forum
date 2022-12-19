@@ -65,6 +65,10 @@
 
 /* POSTS */
 
+#title-input, #title-div {
+  font-size: 3rem;
+}
+
 .post-table td {
   overflow-wrap: break-word;
   hyphens: auto;

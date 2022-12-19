@@ -223,12 +223,6 @@ ALLOWED_TAGS = [
     "ul",
     "strong",
     "br",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
     "table",
     "tbody",
     "thead",
@@ -270,6 +264,7 @@ ATTRIBUTES = {
 
 # tinymce
 TINYMCE_DEFAULT_CONFIG = {
+    "forced_root_block": "false",
     "menubar": "false",
     "min-height": "500px",
     "browser_spellcheck": "true",
@@ -295,7 +290,7 @@ ABSTRACTMESSAGE = True
 ABSTRACTPROFILE = True
 
 # django_forum
-ABSTRACT_POST = False
+ABSTRACTPOST = False
 COMMENT_WAIT = timezone.timedelta(seconds=600)
 
 SITE_DOMAIN = "http://127.0.0.1:8000"
@@ -375,7 +370,7 @@ PIPELINE = {
             "extra_context": default_js_extra_content,
         },
         "forum_post_detail": {
-            "source_filenames": ("django_forum/js/forum_post_detail.js",),
+            "source_filenames": ("django_forum/js/post_detail.js",),
             "output_filename": "django_forum/js/df_pd_min.js",
             "extra_context": default_js_extra_content,
         },
@@ -394,7 +389,7 @@ from elasticsearch import RequestsHttpConnection
 
 pw = os.getenv("ELASTIC_PASSWORD")
 http_auth = ("elastic", pw)
-print(http_auth)
+
 # elasticsearch
 ELASTICSEARCH_DSL = {
     "default": {
@@ -412,16 +407,88 @@ ELASTICSEARCH_DSL = {
 #         "port": "9200",
 #     }
 # }
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#         },
+#     },
+#     "root": {
+#         "handlers": ["console"],
+#         "level": "WARNING",
+#     },
+# }
+
+
+# logging
+def skip_mtime_seen(record):
+    if "mtime" in record.getMessage():  # filter whatever you want
+        return False
+    return True
+
+
+def skip_djangoq_schedule(record):
+    if "schedule" in record.getMessage():
+        return False
+    return True
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
+    "filters": {
+        # use Django's built in CallbackFilter to point to your filter
+        "skip_mtime_seen": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": skip_mtime_seen,
+        },
+        "skip_djangoq_schedule": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": skip_djangoq_schedule,
         },
     },
-    "root": {
-        "handlers": ["console"],
-        "level": "WARNING",
+    "formatters": {
+        "django": {
+            "()": "django.utils.log.ServerFormatter",
+            "format": "[{server_time}] - {pathname} - {message}",
+            "style": "{",
+        },
+        "verbose": {
+            "format": "{levelname} {asctime} {pathname} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "/opt/ceramic_isles_test/debug.log",
+            "formatter": "verbose",
+            "filters": ["skip_mtime_seen", "skip_djangoq_schedule"],
+        },
+        "console": {
+            "level": "ERROR",
+            "class": "logging.StreamHandler",
+            "formatter": "django",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "propagate": True,
+            "level": "DEBUG",
+        },
+        "django_artisan": {
+            "handlers": ["file", "console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "safe_imagefield": {
+            "handlers": ["file", "console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
     },
 }

@@ -82,7 +82,7 @@ class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
 
 
 @utils.decorators.method_decorator(cache.never_cache, name="dispatch")
-class PostList(auth.mixins.LoginRequiredMixin, messages_views.MessageList):
+class PostList(auth.mixins.LoginRequiredMixin, generic.list.ListView):
     model = forum_models.Post
     template_name = "django_forum/posts_and_comments/forum_post_list.html"
     paginate_by = 5
@@ -103,6 +103,8 @@ class PostList(auth.mixins.LoginRequiredMixin, messages_views.MessageList):
         1d5cbccde9f7b183e4d886d7e644712b79db60cd
         """
         # site = site_models.Site.objects.get_current()
+        breakpoint()
+        print("***** HELP *****")
         search = 0
         p_c = None
         is_a_search = False
@@ -168,6 +170,7 @@ class PostList(auth.mixins.LoginRequiredMixin, messages_views.MessageList):
 
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
+        breakpoint()
         context = {
             "form": form,
             "page_obj": page_obj,
@@ -277,7 +280,6 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
             "title_errors": form.errors.get("title", ""),
         }
         context_data["post"] = self.model.objects.get(id=self.object.id)
-        breakpoint()
         # if form.errors["text"]:
         #     context_data["post"].text = ""
         # if form.errors["title"]:

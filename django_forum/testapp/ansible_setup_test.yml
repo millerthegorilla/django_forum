@@ -1,22 +1,35 @@
 ---
 - name: provisioning django_messages testapp
   hosts: localhost
+  connection: local
   vars:
     pip_run: "{{ lookup('ansible.builtin.env', 'PIP_INSTALLED', default='False') }}"
   tasks:
-    - name: check variable
-      debug:
-        msg: hey {{ pip_run }}
     - name: Create Pod
       containers.podman.podman_pod:
         name: django_forum_test_pod
-        publish: 8000:8000
+        publish:
+          - 8000:8000
+          - 7900:7900
+        state: started
+    - name: Create volume if it doesn't exist
+      containers.podman.podman_volume:
+        name: certvol
+        state: present
+        recreate: true
     - name: Create Redis Container
       containers.podman.podman_container:
         name: redis_cont
         image: docker.io/library/redis
         command: redis-server --appendonly yes
-        state: started
+        # state: created
+        pod: django_forum_test_pod
+    - name: Create Selenium Container
+      containers.podman.podman_container:
+        name: selen_cont
+        image: docker.io/selenium/standalone-firefox:4.7.2-20221217
+        shm_size: "2g"
+          # state: created
         pod: django_forum_test_pod
     - name: Pull Python Image
       containers.podman.podman_image:
@@ -28,9 +41,9 @@
         tag: django_forum_test_image
         path: ./dockerfile_python
         build:
-          cache: false
+          # cache: false
           extra_args: "-f './dockerfile_python/Dockerfile_Test'"
-        state: build
+        state: present
       register: build_output
     - debug: var=build_output
     - name: output image info
@@ -42,21 +55,23 @@
         name: django_forum_test_cont
         image: localhost/python:django_forum_test_image
         state: started
-        # recreate: true
         detach: true
+        recreate: false
         volume:
           - "{{ playbook_dir }}/../../../django_forum:/opt/ceramic_isles_test:Z"
           - "certvol:/etc/certs"
         pod: django_forum_test_pod
       register: output
-    - debug: var=output.stdout_lines
+    - debug: var=output
     - name: podman exec pip install
-      shell: podman exec -it django_forum_test_cont bash -c 'source /opt/ceramic_isles_test/venv_django_forum/bin/activate \
-             && pip install -r /opt/ceramic_isles_test/django_forum/testapp/dockerfile_python/pip_requirements' && export PIP_INSTALLED="True"
+      shell: podman exec -it django_forum_test_cont bash -c '! pip show django &>/dev/null && 
+          pip install -r /opt/ceramic_isles_test/django_forum/testapp/dockerfile_python/pip_requirements'
       register: pip_output
-      when: 'pip_run|bool != True'
+      # when: build_output.changed # 'pip_run|bool != True'
+      tags: pip_install
     - debug: var=pip_output # .stdout_lines
     - name: test pytest output
       shell: echo '{{ output.stdout }}'
       register: test_output
     - debug: var=test_output.stdout_lines
+

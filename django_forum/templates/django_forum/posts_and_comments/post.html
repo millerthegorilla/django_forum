@@ -6,14 +6,14 @@
 					<div class="row align-items-end tinfo post-headline mb-2">
 						<div id="title-div" {% if title_errors %}class="col-auto border border-danger"{% else %}class="col-auto"{% endif %}>
 						    {% if not post.moderation_date %}
-						    	<span id="post_title"><h1>{{ post.title|safe }}</h1></span>
+						    	<span id="post_title">{{ post.title|safe }}</span>
 						    	<div class="errors">{{ title_errors|linebreaks }}</div>
 						    {% else %}
 						    	<span id="post_title"><h4>awaiting moderation</h4></span>
 						    {% endif %}
 					    </div>
 					    <div class="post-edit-div">
-					    	<input id="title_input" name="title">
+					    	<input id="title-input" name="title">
 					    </div>
 					    <div class="col-auto">
 					    	<h1><span class="text-dark ps-2">by</span></h1>

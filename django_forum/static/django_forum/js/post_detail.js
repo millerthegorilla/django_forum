@@ -1,25 +1,26 @@
 function EditPost() {
   $('.update-form-text').val($('#textarea').html())
-  $('#title_input').val($('#post_title').html())
+  $('#title-input').val($('#post_title').html())
   $('.post-edit-div').show();
   tinymce.editors[0].show();
   $('#title-div').hide();
   $('#text-errors').hide();
   $('#textarea').hide();
   $('#modify-post-btns').hide();
+  $('#editor-submit-btn').focus();
 }
 
 function HideEditPost(){
     tinymce.editors[0].hide();
     $('.update-form-text').hide()
     $('.post-edit-div').hide()
-    let bob=$('#title_input').val()
-    $('#post_title').html(bob)
+    $('#post_title').html($('#title-input').val())
     $('#textarea').html($('.update-form-text').val())
     $('#title-div').show()
     $('#text-errors').show()
     $('#textarea').show()
     $('#modify-post-btns').show();
+    $('#comment-save').focus();
 }
 
 function getCookie(name) {
@@ -63,6 +64,14 @@ function onInstanceInit(editor) {
 
 $(document).ready(function () {
 
+  $('#title-input').keypress(function (e) {
+   var key = e.which;
+   if(key == 13)  // the enter key code
+    {
+      $('#editor-submit-btn').click();
+      return false;  
+    }
+  });
   $("#id_text").keyup(function(){
     $("#count").text("...characters left: " + String(500 - $(this).val().length));
   });
@@ -78,18 +87,34 @@ $(document).ready(function () {
       HideEditPost()
       $('#text-errors').hide()
   });
+  $('#editor-submit-btn').on("click", function( event ){
+     parts = $(location).attr('pathname').split('/');
+     $.ajax({
+       type: 'POST',
+       url: `${window.location.origin}/update_post/${parts[2]}/${parts[3]}/`,
+       data: { 'title': $('#title-input').val(), 'text': tinymce.editors[0].getContent(), 'csrfmiddlewaretoken': getCookie('csrftoken') },
+       success: function (response) { 
+        window.location.replace(response.url)
+      },
+       error: function (response) { 
+        document.open();
+        document.write(response.responseText);
+        document.close();
+      },
+     })
+  });
 	$('.comment-save').on("click", function( event ) {
   		event.preventDefault();
   		event.currentTarget.closest(".comment-update-form").submit();
-  	});	
-  	$('.report-post').on("click", function( event ) {
-  		event.preventDefault();
-  		event.currentTarget.closest("#form-report-post").submit();
-  	});
-  	$('.report-comment').on("click", function( event ) {
-  		event.preventDefault();
-  		event.currentTarget.closest("#form-report-comment").submit();
-  	});
+	});	
+	$('.report-post').on("click", function( event ) {
+		event.preventDefault();
+		event.currentTarget.closest("#form-report-post").submit();
+	});
+	$('.report-comment').on("click", function( event ) {
+		event.preventDefault();
+		event.currentTarget.closest("#form-report-comment").submit();
+	});
 	$('.comment-edit').on("click", function( event ) {
   		event.preventDefault();
   		showUpdateComment(event.currentTarget.id)
@@ -127,7 +152,7 @@ $(document).ready(function () {
     var slugSegment = parts[3];
     $.ajax({
       type: 'POST',
-      url: "/forum/subscribe/",
+      url: `${window.location.origin}/subscribe/`,
       data: { 'slug': slugSegment, 'data': this.checked, 'csrfmiddlewaretoken': getCookie('csrftoken') },
       success: function (response) {
         text=$("label[for='subscribed_cb']").text();
