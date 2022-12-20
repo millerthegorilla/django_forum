@@ -5,11 +5,6 @@ from django_forum import models as forum_models
 scenarios("../create_post.feature")
 
 
-@given("User is logged in", target_fixture="page")
-def user_is_logged_in(logged_in_page):
-    return logged_in_page
-
-
 @when("User is on the create post page", target_fixture="page")
 def user_is_on_create_post_page(create_post_page):
     return create_post_page

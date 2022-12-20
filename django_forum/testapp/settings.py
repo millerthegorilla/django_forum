@@ -423,72 +423,72 @@ ELASTICSEARCH_DSL = {
 
 
 # logging
-def skip_mtime_seen(record):
-    if "mtime" in record.getMessage():  # filter whatever you want
-        return False
-    return True
+# def skip_mtime_seen(record):
+#     if "mtime" in record.getMessage():  # filter whatever you want
+#         return False
+#     return True
 
 
-def skip_djangoq_schedule(record):
-    if "schedule" in record.getMessage():
-        return False
-    return True
+# def skip_djangoq_schedule(record):
+#     if "schedule" in record.getMessage():
+#         return False
+#     return True
 
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "filters": {
-        # use Django's built in CallbackFilter to point to your filter
-        "skip_mtime_seen": {
-            "()": "django.utils.log.CallbackFilter",
-            "callback": skip_mtime_seen,
-        },
-        "skip_djangoq_schedule": {
-            "()": "django.utils.log.CallbackFilter",
-            "callback": skip_djangoq_schedule,
-        },
-    },
-    "formatters": {
-        "django": {
-            "()": "django.utils.log.ServerFormatter",
-            "format": "[{server_time}] - {pathname} - {message}",
-            "style": "{",
-        },
-        "verbose": {
-            "format": "{levelname} {asctime} {pathname} {module} {process:d} {thread:d} {message}",
-            "style": "{",
-        },
-    },
-    "handlers": {
-        "file": {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": "/opt/ceramic_isles_test/debug.log",
-            "formatter": "verbose",
-            "filters": ["skip_mtime_seen", "skip_djangoq_schedule"],
-        },
-        "console": {
-            "level": "ERROR",
-            "class": "logging.StreamHandler",
-            "formatter": "django",
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["file"],
-            "propagate": True,
-            "level": "DEBUG",
-        },
-        "django_artisan": {
-            "handlers": ["file", "console"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-        "safe_imagefield": {
-            "handlers": ["file", "console"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-    },
-}
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "filters": {
+#         # use Django's built in CallbackFilter to point to your filter
+#         "skip_mtime_seen": {
+#             "()": "django.utils.log.CallbackFilter",
+#             "callback": skip_mtime_seen,
+#         },
+#         "skip_djangoq_schedule": {
+#             "()": "django.utils.log.CallbackFilter",
+#             "callback": skip_djangoq_schedule,
+#         },
+#     },
+#     "formatters": {
+#         "django": {
+#             "()": "django.utils.log.ServerFormatter",
+#             "format": "[{server_time}] - {pathname} - {message}",
+#             "style": "{",
+#         },
+#         "verbose": {
+#             "format": "{levelname} {asctime} {pathname} {module} {process:d} {thread:d} {message}",
+#             "style": "{",
+#         },
+#     },
+#     "handlers": {
+#         "file": {
+#             "level": "DEBUG",
+#             "class": "logging.FileHandler",
+#             "filename": "/opt/ceramic_isles_test/debug.log",
+#             "formatter": "verbose",
+#             "filters": ["skip_mtime_seen", "skip_djangoq_schedule"],
+#         },
+#         "console": {
+#             "level": "ERROR",
+#             "class": "logging.StreamHandler",
+#             "formatter": "django",
+#         },
+#     },
+#     "loggers": {
+#         "django": {
+#             "handlers": ["file"],
+#             "propagate": True,
+#             "level": "DEBUG",
+#         },
+#         "django_artisan": {
+#             "handlers": ["file", "console"],
+#             "level": "DEBUG",
+#             "propagate": True,
+#         },
+#         "safe_imagefield": {
+#             "handlers": ["file", "console"],
+#             "level": "DEBUG",
+#             "propagate": True,
+#         },
+#     },
+# }

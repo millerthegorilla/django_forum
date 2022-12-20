@@ -1,35 +1,39 @@
 import pytest
 
 from pytest_bdd import given, scenarios, then, when
-from django_messages import models as message_models
+from django_forum import models as forum_models
 
-scenarios("../delete_message.feature")
-
-
-@given("User is on the create message page", target_fixture="page")
-def user_is_on_create_message_page(create_message_page):
-    return create_message_page
+scenarios("../delete_post.feature")
 
 
-@when("User visits the delete message page")
-def user_visits_delete_message_page(db, test_message, page):
-    url = f"{page.domain}/delete_message/{test_message.id}/{test_message.slug}/"
-    page.visit(url)
-    return page
+@given("User is on the Post View page", target_fixture="page")
+def user_is_on_post_view_page(db, view_post_page):
+    return view_post_page
 
 
-@when("User clicks the confirm button")
+@given("User clicks the delete button")
+def user_clicks_delete_post_button(page):
+    page.click("#delete-btn")
+
+
+@then("Post Delete modal is shown")
+def post_delete_modal_is_shown(page):
+    page.assert_element_visible("#confirmDeleteModal")
+
+
+@then("User clicks the confirm button")
 def user_clicks_confirm_button(page):
-    page.click("input[type='submit']")
+    page.click("/html/body/div[1]/div[2]/div/div[1]/div[4]/div/div/div[3]/form/button")
 
 
-@then("Message is deleted")
-def message_is_deleted(test_message):
-    with pytest.raises(message_models.Message.DoesNotExist):
-        message_models.Message.objects.get(id=test_message.id)
+@then("Post is deleted")
+def post_is_deleted(post_text):
+    with pytest.raises(forum_models.Post.DoesNotExist):
+        forum_models.Post.objects.get(text=post_text())
 
 
-@then("User is taken to message list page")
-def user_is_taken_to_message_list_page(page):
-    assert "Message list" in page.get_page_title()
-    assert "There are currently no messages." in page.get_page_source()
+@then("User is taken to post list page")
+def user_is_taken_to_post_list_page(page):
+    assert "Forum Posts" in page.get_page_title()
+    breakpoint()
+    assert "There are currently no posts in the forum" in page.get_page_source()

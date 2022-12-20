@@ -1,5 +1,6 @@
 Feature: Deleting a post
 
+    @locutus
     Scenario: User deletes a post
         Given User is logged in
         And User is on the Post View page

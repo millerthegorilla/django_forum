@@ -1,7 +1,6 @@
 
 Feature: Creating a post
     
-    @locutus
     Scenario: User creates a post
         Given User is logged in
         When User is on the create post page
