@@ -1,8 +1,9 @@
 import random
-
 import pytest
-from django.urls import reverse
 from faker import Faker
+
+from django.urls import reverse
+from django.template import defaultfilters
 
 
 class UserDetails:
@@ -41,6 +42,10 @@ def user(
     user.set_password(user_details.password)
     user.is_active = False
     user.save()
+    user.profile.display_name = defaultfilters.slugify(
+        user_details.first_name + " " + user_details.last_name
+    )
+    user.profile.save(update_fields=["display_name"])
     yield user
     user.delete()
 

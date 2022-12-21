@@ -1,6 +1,8 @@
 Feature: Viewing a post
-
+    
+    @locutus
     Scenario: User views a post
-        Given a post exists
-        When user visits the correct url
-        Then the post can be viewed
+        Given User is logged in
+        And A post exists
+        When User visits the post view page
+        Then The post can be viewed

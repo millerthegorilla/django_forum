@@ -1,6 +1,7 @@
 Feature: Listing posts
 
     Scenario: User lists all posts
-        Given A post exists
+        Given User is logged in
+        And A post exists
         When User visits the post list page
-        Then the post is listed
+        Then The post is listed

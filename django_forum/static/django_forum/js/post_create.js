@@ -7,6 +7,7 @@ $(document).ready(function () {
         $('.tox-statusbar__wordcount').click();
     }
     tinymce.init({
+        'forced_root_block': 'false',
     	'selector': '.update-form-text',
     	'init_instance_callback': onInstanceInit(),
         'menubar': "False",

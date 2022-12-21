@@ -14,7 +14,7 @@ def user_is_on_create_post_page(create_post_page):
 def user_enters_some_text(page, post_text):
     page.type("#id_title", "post title")
     page.switch_to_frame("id_text_ifr")
-    page.type("#tinymce", post_text())
+    page.type("#tinymce", post_text)
     page.switch_to_parent_frame()
 
 
@@ -25,7 +25,7 @@ def user_clicks_save_button(page, db):
 
 @then("Post is stored in database")
 def post_is_stored_in_database(db, post_text):
-    assert forum_models.Post.objects.first().text == post_text()
+    assert forum_models.Post.objects.first().text == post_text
 
 
 @then("User is taken to post detail page")

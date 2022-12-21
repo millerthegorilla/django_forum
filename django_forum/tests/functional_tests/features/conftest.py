@@ -5,6 +5,7 @@ from django_forum import models as forum_models
 from pytest_bdd import given, scenarios, then, when
 
 POST_TEXT = "Ipsum Lorum Dolum Est"
+UPDATED_POST_TEXT = "Pissum Lawum Dole Est"
 
 CREATE_POST_URL = reverse("django_forum:post_create_view")
 # VIEW_POST_URL = forum_models.Post.objects.first().get_absolute_url()
@@ -12,7 +13,7 @@ LIST_POST_URL = reverse("django_forum:post_list_view")
 
 LINKS_DICT = {
     "create_post": f"a[href='{CREATE_POST_URL}']",
-    "list_message": f"a[href='{LIST_POST_URL}']",
+    "list_post": f"a[href='{LIST_POST_URL}']",
     #   "view_post": f"a[href='{VIEW_POST_URL}']",
 }
 
@@ -25,7 +26,12 @@ PAGES_DICT = {
 
 @pytest.fixture()
 def post_text():
-    return lambda: POST_TEXT
+    return POST_TEXT
+
+
+@pytest.fixture()
+def updated_post_text():
+    return UPDATED_POST_TEXT
 
 
 @pytest.fixture()
@@ -64,3 +70,14 @@ def view_post_page(post, browser):
 @given("User is logged in", target_fixture="page")
 def user_is_logged_in(logged_in_page):
     return logged_in_page
+
+
+@given("A post exists", target_fixture="test_post")
+def post_exists(post):
+    return post
+
+
+@when("User visits the post view page", target_fixture="page")
+def user_visits_post_view_page(browser, test_post):
+    browser.visit(browser.domain + test_post.get_absolute_url())
+    return browser

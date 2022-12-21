@@ -1,9 +1,9 @@
 Feature: Deleting a post
 
-    @locutus
     Scenario: User deletes a post
         Given User is logged in
-        And User is on the Post View page
+        And A post exists
+        When User visits the post view page
         And User clicks the delete button
         Then Post Delete modal is shown
         And User clicks the confirm button

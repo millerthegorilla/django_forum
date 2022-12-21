@@ -1,6 +1,6 @@
 function EditPost() {
   $('.update-form-text').val($('#textarea').html())
-  $('#title-input').val($('#post_title').html())
+  $('#title-input').val($('#post-title').html())
   $('.post-edit-div').show();
   tinymce.editors[0].show();
   $('#title-div').hide();
@@ -14,7 +14,7 @@ function HideEditPost(){
     tinymce.editors[0].hide();
     $('.update-form-text').hide()
     $('.post-edit-div').hide()
-    $('#post_title').html($('#title-input').val())
+    $('#post-title').html($('#title-input').val())
     $('#textarea').html($('.update-form-text').val())
     $('#title-div').show()
     $('#text-errors').show()
@@ -124,8 +124,9 @@ $(document).ready(function () {
   		hideUpdateComment(event.currentTarget.id)
 	});
 	tinymce.init({
-	'selector': '.update-form-text',
-	'init_instance_callback': onInstanceInit,
+    'forced_root_block': 'false',
+	  'selector': '.update-form-text',
+	  'init_instance_callback': onInstanceInit,
     'menubar': "False",
     'min-height': "500px",
     'browser_spellcheck': "True",
