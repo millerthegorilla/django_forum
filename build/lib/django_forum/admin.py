@@ -77,6 +77,7 @@ class Post(soft_deletion.Admin):
         "unlock_commenting",
         "unpin_post",
         "pin_post",
+        "hard_delete_post",
     ]
 
     def approve_post(
@@ -192,6 +193,25 @@ class Post(soft_deletion.Admin):
             messages.SUCCESS,
         )
 
+    def hard_delete_post(
+        self, request: http.HttpRequest, queryset: db_models.QuerySet
+    ) -> None:
+        idx = 0
+        for q in queryset:
+            q.hard_delete()
+            idx += 1
+
+        self.message_user(
+            request,
+            utils.translation.ngettext(
+                "%d post was deleted.",
+                "%d posts were deleted.",
+                idx,
+            )
+            % idx,
+            messages.SUCCESS,
+        )
+
 
 try:
     abs_forum_profile = conf.settings.ABSTRACTFORUMPROFILE
@@ -262,7 +282,7 @@ class Comment(soft_deletion.Admin):
     # make row sortable
     post_str.admin_order_field = "post"  # type: ignore
 
-    actions = ["approve_comment"]
+    actions = ["approve_comment", "hard_delete_comment",]
 
     def approve_comment(self, request: http.HttpRequest, queryset: db_models.QuerySet):
         updated = queryset.update(moderation_date=None)
@@ -277,3 +297,23 @@ class Comment(soft_deletion.Admin):
             % updated,
             messages.SUCCESS,
         )
+
+    def hard_delete_comment(
+        self, request: http.HttpRequest, queryset: db_models.QuerySet
+    ) -> None:
+        idx = 0
+        for q in queryset:
+            q.hard_delete()
+            idx += 1
+
+        self.message_user(
+            request,
+            utils.translation.ngettext(
+                "%d comment was deleted.",
+                "%d comments were deleted.",
+                idx,
+            )
+            % idx,
+            messages.SUCCESS,
+        )
+

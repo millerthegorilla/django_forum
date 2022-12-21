@@ -1,0 +1,49 @@
+---
+- name: provisioning django_messages testapp
+  hosts: localhost
+  tasks:
+  # - name: "where am i"
+  #   shell: "ls {{ playbook_dir }}"
+  #   register: "output"
+  # - debug: var=output.stdout_lines
+  - name: Create Pod
+    containers.podman.podman_pod:
+      name: django_forum_test_pod
+      publish: 8000:8000
+  - name: Create Redis Container
+    containers.podman.podman_container:
+      name: redis_cont
+      image: docker.io/library/redis
+      command: redis-server --appendonly yes
+      state: started
+      recreate: true
+      pod: django_forum_test_pod
+  - name: Pull Python Image
+    containers.podman.podman_image:
+      name: docker.io/library/python
+      state: present
+  - name: Build Custom Python Image
+    containers.podman.podman_image:
+      name: python
+      tag: django_forum_test_image
+      path: ./dockerfile_python
+      build:
+        cache: false
+      state: build
+  - name: Create custom container
+    containers.podman.podman_container:
+      name: django_forum_test_cont
+      image: localhost/python:django_forum_test_image
+      state: started
+      env: {"TESTRUN": true}
+      recreate: true
+      detach: false
+      volume:
+        - "{{ playbook_dir}}/../../../django_forum:/opt/ceramic_isles_test:Z"
+      pod: django_forum_test_pod
+    register: output
+  - debug: var=output.stdout_lines
+  - name: test pytest output
+    shell: echo '{{ output.stdout }}'
+    register: test_output
+  - debug: var=test_output.stdout_lines

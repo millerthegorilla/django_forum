@@ -68,7 +68,6 @@ class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
         if "subscribe" in self.request.POST:
             post.subscribed_users.add(self.request.user)
         post.save()
-        breakpoint()
         return shortcuts.redirect(self.get_success_url(post))
 
     def get_success_url(self, post: forum_models.Post, *args, **kwargs) -> str:
@@ -103,8 +102,6 @@ class PostList(auth.mixins.LoginRequiredMixin, generic.list.ListView):
         1d5cbccde9f7b183e4d886d7e644712b79db60cd
         """
         # site = site_models.Site.objects.get_current()
-        breakpoint()
-        print("***** HELP *****")
         search = 0
         p_c = None
         is_a_search = False
@@ -170,7 +167,6 @@ class PostList(auth.mixins.LoginRequiredMixin, generic.list.ListView):
 
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
-        breakpoint()
         context = {
             "form": form,
             "page_obj": page_obj,
@@ -222,6 +218,8 @@ class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
         )
         context = self.get_context_data()
         context["post"] = self.object
+        context["title_errors"] = ""
+        context["text_errors"] = ""
         return shortcuts.render(request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
@@ -244,12 +242,15 @@ class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
 
 # ajax function for subscribe checkbox
 def subscribe(request) -> http.JsonResponse:
-    # request should be ajax and method should be POST.
     if conf.settings.ABSTRACTPOST:
         post_model = apps.get_model(*conf.settings.POST_MODEL.split("."))
     else:
         post_model = forum_models.Post
-    if request.is_ajax and request.method == "POST":
+    # request should be ajax and method should be POST.
+    if (
+        request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+        and request.method == "POST"
+    ):
         try:
             fp = post_model.objects.get(slug=request.POST["slug"])
             if request.POST["data"] == "true":
@@ -270,8 +271,6 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
     form_class = forum_forms.Post
     comment_form_class = forum_forms.Comment
     template_name = "django_forum/posts_and_comments/forum_post_detail.html"
-    pk: None
-    slug: None
 
     def form_invalid(self, form):
         context_data = {
@@ -280,12 +279,6 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
             "title_errors": form.errors.get("title", ""),
         }
         context_data["post"] = self.model.objects.get(id=self.object.id)
-        # if form.errors["text"]:
-        #     context_data["post"].text = ""
-        # if form.errors["title"]:
-        #     context_data["post"].title = ""
-        # context_data["post"].save(update_fields=[key for key in form.errors.keys()])
-
         context_data["comments"] = (
             self.object.comments.all()
             .select_related("author")
@@ -293,28 +286,13 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
             .select_related("author__profile__avatar")
         )
         context_data["comment_form"] = self.comment_form_class()
-        return shortcuts.render(self.request, self.template_name, context_data)
+        return shortcuts.render(
+            self.request, self.template_name, context_data, status=406
+        )
 
-    # def post(
-    #     self,
-    #     request: http.HttpRequest,
-    #     pk: int,
-    #     slug: str,
-    #     updatefields: list = [],
-    # ) -> http.HttpResponseRedirect:
-    #     breakpoint()
-    #     try:
-    #         if post is None:
-    #             post = self.model.objects.get(id=pk)
-    #         post.text = messages_forms.Message.sanitize_text(
-    #             self.request.POST["update-post"]
-    #         )
-    #         post.save(update_fields=["text"] + updatefields)
-    #         return shortcuts.redirect(
-    #             urls.reverse_lazy(self.a_name + ":post_view", args=[pk, slug])
-    #         )
-    #     except self.model.DoesNotExist:
-    #         logger.error("post does not exist when updating post.")
+    def form_valid(self, form):
+        post = form.save()
+        return http.JsonResponse({"url": shortcuts.redirect(post).url}, status=200)
 
 
 class DeletePost(auth.mixins.LoginRequiredMixin, views.View):
@@ -359,7 +337,6 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
 
     def form_valid(self, form):
         comment = form.save(commit=False)
-        comment.author = self.request.user
         comment.post_fk = self.post_model.objects.get(id=self.kwargs["pk"])
         comment.slug = defaultfilters.slugify(
             comment.text[:4]

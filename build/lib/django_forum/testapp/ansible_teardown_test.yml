@@ -1,0 +1,12 @@
+---
+- name: provisioning django_forum testapp
+  hosts: localhost
+  tasks:
+  - name: Stop Pod
+    containers.podman.podman_pod:
+      name: django_forum_test_pod
+      state: stopped
+  # - name: Remove Database
+  #   shell: rm ../db.sqlite3
+  #   register: output
+  # - debug: var=output.stdout_lines

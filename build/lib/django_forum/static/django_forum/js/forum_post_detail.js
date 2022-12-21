@@ -1,7 +1,6 @@
 function EditPost() {
-  console.log("edit post function")
   $('.update-form-text').val($('#textarea').html())
-  $('#title_input').val($('#post_title').html())
+  $('#title_input').val($('#post-title').html())
   $('.post-edit-div').show();
   tinymce.editors[0].show();
   $('#title-div').hide();
@@ -14,9 +13,7 @@ function HideEditPost(){
     tinymce.editors[0].hide();
     $('.update-form-text').hide()
     $('.post-edit-div').hide()
-    let bob=$('#title_input').val()
-    console.log("bob is " + bob)
-    $('#post_title').html(bob)
+    $('#post-title').html($('#title_input').val())
     $('#textarea').html($('.update-form-text').val())
     $('#title-div').show()
     $('#text-errors').show()

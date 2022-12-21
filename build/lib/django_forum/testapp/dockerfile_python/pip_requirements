@@ -1,0 +1,66 @@
+# hope this comment allows the first entry to be installed
+asgiref
+bleach[css]
+certifi # ==2020.12.5
+clamd
+Django
+django-crispy-forms==1.14.0
+django-elasticsearch-dsl
+django-email-verification
+pyjwt
+django-password-validators
+django-recaptcha
+django-tinymce
+django-debug-toolbar
+elasticsearch
+elasticsearch-dsl
+ffmpeg
+fuzzywuzzy
+gunicorn
+mysqlclient
+packaging
+Pillow
+pyparsing
+python-dateutil
+python-dotenv
+python-Levenshtein
+python-magic
+django-redis
+pytz
+six
+sorl-thumbnail
+sqlparse
+urllib3   # ==1.26.9
+webencodings
+random_username
+django-extensions
+pygraphviz
+crispy_bootstrap5
+django-q
+django-dbbackup
+# dropbox==
+mypy
+django-stubs
+ipython # 8.4.0
+django-pipeline
+# git+https://github.com/millerthegorilla/django-pipeline.git@main
+# django-pipeline @ git+https://github.com/millerthegorilla/django-pipeline#egg=django-pipeline
+# git+https://github.com/millerthegorilla/django_artisan.git@main
+jsmin
+faker
+css_html_js_minify
+django-storages
+django-admin-honeypot
+ansible
+pytest>=7.1.3
+seleniumbase
+pytest-mock
+pytest-cov
+pytest-django
+pytest-randomly
+pytest-clarity
+pytest-bdd
+pytest-xdist
+django_profile @ git+https://github.com/millerthegorilla/django_profile@main#egg=django_profile
+django_messages @ git+https://github.com/millerthegorilla/django_messages@main#egg=django_messages
+safe_imagefield @ git+https://github.com/millerthegorilla/safe_imagefield@main#egg=safe_imagefield
