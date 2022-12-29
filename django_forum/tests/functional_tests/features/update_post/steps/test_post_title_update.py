@@ -5,16 +5,6 @@ scenarios("../post_title_update.feature")
 
 
 UPDATED_TITLE_TEXT = "the first post title edited"
-# Given User is logged in
-#         And a post exists
-#         When User visits the post view page
-#         And User clicks the edit post button
-#         Then tinymce is displayed
-#         And title is editable
-#         And User changes the post text
-#         And User clicks the save button
-#         Then the updated post is saved
-#         And User is redirected to view post page
 
 
 @then("The title is editable")

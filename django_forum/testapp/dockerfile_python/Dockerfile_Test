@@ -3,9 +3,14 @@ FROM docker.io/library/python
 ARG PROJECT_NAME="ceramic_isles_test"
 ENV PYTHONPATH="/opt/${PROJECT_NAME}/"
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y libmagic1 libmagickwand-dev libjpeg62-turbo-dev zlib1g-dev python3-pil python3-pil.imagetk graphviz graphviz-dev vim
+RUN apt-get install -y libmagic1 libmagickwand-dev libjpeg62-turbo-dev zlib1g-dev python3-pil python3-pil.imagetk graphviz graphviz-dev vim libnss3
 RUN rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /opt/${PROJECT_NAME};
 RUN mkdir -p /var/log/${PROJECT_NAME};
 COPY skel/* /etc/skel
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+RUN apt-get update
+RUN apt --fix-broken install
+RUN apt-get install google-chrome-stable -y
 ENTRYPOINT ["/opt/ceramic_isles_test/django_forum/testapp/dockerfile_python/docker_entrypoint_init.sh"]

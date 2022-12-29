@@ -3,7 +3,7 @@ FROM docker.io/library/python
 ARG PROJECT_NAME="ceramic_isles_test"
 ENV PYTHONPATH="/opt/${PROJECT_NAME}/"
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y libmagic1 libmagickwand-dev libjpeg62-turbo-dev zlib1g-dev python3-pil python3-pil.imagetk graphviz graphviz-dev vim
+RUN apt-get install -y libmagic1 libmagickwand-dev libjpeg62-turbo-dev zlib1g-dev python3-pil python3-pil.imagetk graphviz graphviz-dev vim libnss3
 RUN rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /opt/${PROJECT_NAME};
 RUN mkdir -p /var/log/${PROJECT_NAME};

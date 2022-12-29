@@ -54,11 +54,16 @@ def create_post_page(browser):
     return browser
 
 
+@given("A post exists", target_fixture="test_post")
+def post_exists(post):
+    return post
+
+
 @pytest.fixture()
 def post(db, active_user):
-    return forum_models.Post.objects.create(
+    return forum_models.Post.objects.get_or_create(
         author=active_user, title="Title", text=POST_TEXT
-    )
+    )[0]
 
 
 @pytest.fixture()
@@ -70,11 +75,6 @@ def view_post_page(post, browser):
 @given("User is logged in", target_fixture="page")
 def user_is_logged_in(logged_in_page):
     return logged_in_page
-
-
-@given("A post exists", target_fixture="test_post")
-def post_exists(post):
-    return post
 
 
 @when("User visits the post view page", target_fixture="page")

@@ -1,11 +1,6 @@
 from pytest_bdd import given, scenarios, then, when
 
-scenarios("../post_list.feature")
-
-
-@given("A post exists", target_fixture="test_post")
-def post_exists(browser, post):
-    return post
+scenarios("../list_post.feature")
 
 
 @when("User visits the post list page", target_fixture="page")

@@ -75,3 +75,9 @@ def auto_login_user(db, client, active_user):
         return client, user
 
     return make_auto_login
+
+
+def pytest_bdd_step_error(
+    request, feature, scenario, step, step_func, step_func_args, exception
+):
+    print(f"step failed {step}")
