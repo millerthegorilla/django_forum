@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
+    "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
@@ -295,6 +296,8 @@ COMMENT_WAIT = timezone.timedelta(seconds=600)
 
 SITE_DOMAIN = "http://127.0.0.1:8000"
 
+# contrib.sites
+SITE_ID = 1
 
 # django_users
 # DJANGO-EMAIL-VERIFICATION SETTINGS
