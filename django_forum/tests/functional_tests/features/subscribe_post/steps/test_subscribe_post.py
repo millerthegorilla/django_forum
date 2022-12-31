@@ -14,6 +14,6 @@ def subscribe_checkbox_is_not_checked(page):
 
 
 @then("User is not subscribed")
-def user_is_not_subscribed(active_user, post):
+def user_is_not_subscribed(active_user, test_post):
     with pytest.raises(forum_models.Post.DoesNotExist):
-        active_user.subscribed_posts.get(title=post.title)
+        active_user.subscribed_posts.get(title=test_post.title)

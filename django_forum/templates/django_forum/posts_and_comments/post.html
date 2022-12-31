@@ -36,7 +36,7 @@
 					    <div id="textarea" class="col-auto" required="">{{ post.text|safe }}</div>
 					    <div id="text-errors" {% if text_errors %}class="errors ms-auto border border-danger"{% else %}class="col-auto"{% endif %}>{{ text_errors }}</div>
 					    {% else %}
-					    <div>This post has been reported and is awaiting moderation.  Comments are locked until the post has been validated.</div>
+					    <div id="mod-msg">This post has been reported and is awaiting moderation.  Comments are locked until the post has been validated.</div>
 					    {% endif %}
 					</div>
 			    </form>

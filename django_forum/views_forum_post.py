@@ -480,7 +480,8 @@ class ReportPost(auth.mixins.LoginRequiredMixin, views.View):
         )
         if post.author != request.user:
             post.moderation_date = utils.timezone.now()
-            post.save(update_fields=["moderation_date"])
+            post.commenting_locked = True
+            post.save(update_fields=["moderation_date", "commenting_locked"])
             tasks.async_task("django_forum.tasks.send_mod_mail", "Post")
         return shortcuts.redirect(
             urls.reverse_lazy(self.a_name + ":post_view", args=[post.id, post.slug])

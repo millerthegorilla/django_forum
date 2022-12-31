@@ -56,14 +56,17 @@ def create_post_page(browser):
 
 @given("A post exists", target_fixture="test_post")
 def post_exists(post):
-    return post
+    return post()
 
 
 @pytest.fixture()
 def post(db, active_user):
-    return forum_models.Post.objects.get_or_create(
-        author=active_user, title="Title", text=POST_TEXT
-    )[0]
+    def posty():
+        return forum_models.Post.objects.get_or_create(
+            author=active_user, title="Title", text=POST_TEXT
+        )[0]
+
+    return posty
 
 
 @pytest.fixture()
@@ -73,11 +76,22 @@ def view_post_page(post, browser):
 
 
 @given("User is logged in", target_fixture="page")
-def user_is_logged_in(logged_in_page):
-    return logged_in_page
+def user_is_logged_in(logged_in_page, active_user, user_details):
+    return logged_in_page(active_user, user_details.password)
+
+
+@given("Other user is logged in", target_fixture="page")
+def other_user_is_logged_in(logged_in_page, other_user, other_user_details):
+    return logged_in_page(other_user, other_user_details.password)
 
 
 @when("User visits the post view page", target_fixture="page")
 def user_visits_post_view_page(browser, test_post):
     browser.visit(browser.domain + test_post.get_absolute_url())
     return browser
+
+
+@when("Moderation link is visible")
+@then("Moderation link is visible")
+def moderation_link_is_visible(page):
+    page.assert_element_visible(".report-post")

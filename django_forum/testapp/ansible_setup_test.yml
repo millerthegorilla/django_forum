@@ -29,6 +29,10 @@
         name: selen_cont
         image: docker.io/selenium/standalone-firefox:4.7.2-20221217
         shm_size: "2g"
+        env:
+          SE_SCREEN_WIDTH: 1366
+          SE_SCREEN_HEIGHT: 768
+          SE_SCREEN_DEPTH: 24
           # state: created
         pod: django_forum_test_pod
     - name: Pull Python Image

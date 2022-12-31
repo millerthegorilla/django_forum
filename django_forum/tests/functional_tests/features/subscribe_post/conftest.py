@@ -9,8 +9,8 @@ User = get_user_model()
 
 
 @pytest.fixture()
-def subscribed_user(active_user, post):
-    post.subscribed_users.add(active_user)
+def subscribed_user(active_user, test_post):
+    test_post.subscribed_users.add(active_user)
     return active_user
 
 
@@ -26,9 +26,9 @@ def subscribe_checkbox_is_checked(page):
 
 @given("User is subscribed")
 @then("User is subscribed")
-def user_is_subscribed(db, post, subscribed_user):
+def user_is_subscribed(db, test_post, subscribed_user):
     try:
-        post.subscribed_users.get(username=subscribed_user.username)
+        test_post.subscribed_users.get(username=subscribed_user.username)
     except User.DoesNotExist as e:
         assert False, f"User {subscribed_user.username} is not subscribed"
 

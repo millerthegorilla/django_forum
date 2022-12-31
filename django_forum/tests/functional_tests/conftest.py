@@ -24,46 +24,61 @@ def user_details():
 
 
 @pytest.fixture()
-def different_user_details():
+def other_user_details():
     return UserDetails()
 
 
 @pytest.fixture()
 def user(
-    transactional_db, user_details, django_user_model
+    transactional_db, django_user_model
 ):  # transactional_db because using live_server
-    user = django_user_model.objects.create(
-        username=user_details.username,
-        password=user_details.password,  # https://stackoverflow.com/questions/2619102/djangos-self-client-login-does-not-work-in-unit-tests  # noqa: E501
-        first_name=user_details.first_name,
-        last_name=user_details.last_name,
-        email=user_details.email,
-    )
-    user.set_password(user_details.password)
-    user.is_active = False
-    user.save()
-    user.profile.display_name = defaultfilters.slugify(
-        user_details.first_name + " " + user_details.last_name
-    )
-    user.profile.save(update_fields=["display_name"])
-    yield user
-    user.delete()
+    def create_user(details):
+        user = django_user_model.objects.create(
+            username=details.username,
+            password=details.password,  # https://stackoverflow.com/questions/2619102/djangos-self-client-login-does-not-work-in-unit-tests  # noqa: E501
+            first_name=details.first_name,
+            last_name=details.last_name,
+            email=details.email,
+        )
+        user.set_password(details.password)
+        user.is_active = False
+        user.save()
+        user.profile.display_name = defaultfilters.slugify(
+            details.first_name + " " + details.last_name
+        )
+        user.profile.save(update_fields=["display_name"])
+        return user
+
+    return create_user
 
 
 @pytest.fixture()
-def active_user(user):
-    user.is_active = True
-    user.save()
-    return user
+def active_user(user, user_details):
+    a_user = user(user_details)
+    a_user.is_active = True
+    a_user.is_superuser = True
+    a_user.save()
+    return a_user
 
 
 @pytest.fixture()
-def logged_in_page(browser, active_user, db, user_details):
-    browser.visit(browser.domain + reverse("django_users:login"))
-    browser.type("#id_username", active_user.username)
-    browser.type("#id_password", user_details.password)
-    browser.click('button[type="submit"]')
-    return browser
+def other_user(user, other_user_details):
+    o_user = user(other_user_details)
+    o_user.is_active = True
+    o_user.save()
+    return o_user
+
+
+@pytest.fixture()
+def logged_in_page(browser, db):
+    def page(user, password):
+        browser.visit(browser.domain + reverse("django_users:login"))
+        browser.type("#id_username", user.username)
+        browser.type("#id_password", password)
+        browser.click('button[type="submit"]')
+        return browser
+
+    return page
 
 
 @pytest.fixture()

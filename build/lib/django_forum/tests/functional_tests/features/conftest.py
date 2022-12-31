@@ -61,10 +61,10 @@ def post(db, active_user):
     )
 
 
-@pytest.fixture()
-def view_post_page(post, browser):
-    browser.visit(browser.domain + post.get_absolute_url())
-    return browser
+# @pytest.fixture()
+# def view_post_page(post, browser):
+#     browser.visit(browser.domain + post.get_absolute_url())
+#     return browser
 
 
 @given("User is logged in", target_fixture="page")

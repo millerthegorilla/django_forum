@@ -86,8 +86,9 @@ class Post(soft_deletion.Admin):
         idx = 0
         for q in queryset:
             q.moderation_date = None
+            q.commenting_locked = False
             try:
-                q.save(update_fields=["moderation_date"])
+                q.save(update_fields=["moderation_date", "commenting_locked"])
                 idx += 1
             except Exception as e:
                 logger.error("Error approving moderation : {0}".format(e))
@@ -282,7 +283,10 @@ class Comment(soft_deletion.Admin):
     # make row sortable
     post_str.admin_order_field = "post"  # type: ignore
 
-    actions = ["approve_comment", "hard_delete_comment",]
+    actions = [
+        "approve_comment",
+        "hard_delete_comment",
+    ]
 
     def approve_comment(self, request: http.HttpRequest, queryset: db_models.QuerySet):
         updated = queryset.update(moderation_date=None)
@@ -316,4 +320,3 @@ class Comment(soft_deletion.Admin):
             % idx,
             messages.SUCCESS,
         )
-
