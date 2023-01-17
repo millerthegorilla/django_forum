@@ -58,11 +58,11 @@ class ForumProfile(profile_views.ProfileUpdate):
 
         if not form.errors and form.fields:
             pf = request.user.profile
+            for x in form.changed_data:
+                setattr(request.user.profile, x, form[x].value())
             if "display_name" in user_form.changed_data:
                 pf.display_name = user_form["display_name"].value()
                 form.changed_data.append("display_name")
-            for x in form.changed_data:
-                setattr(request.user.profile, x, form[x].value())
             pf.save(update_fields=form.changed_data)
 
         if not user_form.errors:

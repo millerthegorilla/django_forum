@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-CMDSTR="cd /opt/ceramic_isles_test/; unset PYTHONPATH && export PYTHONPATH='/opt/ceramic_isles_test/'; pytest $@"
+CMDSTR="cd /opt/ceramic_isles_test/; unset PYTHONPATH && export PYTHONPATH='/opt/ceramic_isles_test/'; pytest $@ --headless2" #--slow --demo-sleep=0.02"
 
 echo $CMDSTR
 

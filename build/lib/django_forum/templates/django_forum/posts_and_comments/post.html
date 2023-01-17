@@ -1,6 +1,6 @@
 		{% load thumbnail %}
 		{% load static %}
-		<div id='post_text' class="col-12 col-sm-11 col-md-12 col-lg-9 mx-auto my-auto">
+		<div id='post' class="col-12 col-sm-11 col-md-12 col-lg-9 mx-auto my-auto">
 			<div class='ps-4'>
 				<form method="post" action="{% url 'django_forum:post_update' post.pk post.slug %}">
 					<div class="row align-items-end tinfo post-headline mb-2">

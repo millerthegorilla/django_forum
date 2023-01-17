@@ -10,6 +10,7 @@ class UserDetails:
     def __init__(self):
         fake = Faker()
         fake.random.seed(random.randint(0, 999))
+        self.display_name = fake.first_name() + "123"
         self.first_name = fake.first_name()
         self.last_name = fake.last_name()
         self.domain = fake.domain_name()

@@ -1,6 +1,7 @@
 {% extends BASE_HTML %}
 {% block title %}{{ siteName }} - Update Profile{% endblock title %}
 {% load static %}
+{% load pipeline %}
 {% load crispy_forms_tags %}
 {% if user.is_authenticated %}
     {% load thumbnail %}
@@ -40,7 +41,7 @@
             {% endif %}
         </div>
     {% endblock content %}
-    {% block body_imports %}
-        <script src="{% static 'django_forum/js/profileUpdate.js' %}" type="application/javascript" referrerpolicy="origin"></script>
-    {% endblock body_imports %}
+    {% block body_js %}
+        {% javascript 'forum_profile_update' %}
+    {% endblock body_js %}
 {% endif %}

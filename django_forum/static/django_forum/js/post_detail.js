@@ -40,20 +40,21 @@ function getCookie(name) {
 }
 
 function showUpdateComment(id) {
-  //$("textarea[id='#comment-textarea-" + id + "']").val($('#comment-text-' + id).html().trim())
-  $("#comment-textarea-" + id).val($('#comment-text-' + id).text().trim())
-  $('#comment-textarea-' + id).show()
-  $('#comment-text-' + id).hide()
-  $('#comment-form-buttons-' + id).show()
-  $('#comment-modify-btns-' + id).hide()
+  num = id.split('-').pop()
+  $("#comment-textarea-" + num).val($('#comment-text-' + num).text().trim())
+  $('#comment-textarea-' + num).show()
+  $('#comment-text-' + num).hide()
+  $('#comment-form-buttons-' + num).show()
+  $('#comment-modify-btns-' + num).hide()
 }
 
 function hideUpdateComment(id) {
-    $('#comment-form-buttons-' + id).hide()
-    $('#comment-modify-btns-' + id).show()
-    $('#comment-textarea-' + id).val('')
-    $('#comment-textarea-' + id).hide()
-    $('#comment-text-' + id).show()
+  num = id.split('-').pop()
+  $('#comment-form-buttons-' + num).hide()
+  $('#comment-modify-btns-' + num).show()
+  $('#comment-textarea-' + num).val('')
+  $('#comment-textarea-' + num).hide()
+  $('#comment-text-' + num).show()
 }
 
 function onInstanceInit(editor) {
@@ -135,7 +136,7 @@ $(document).ready(function () {
     'toolbar': "undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist checklist | forecolor backcolor casechange permanentpen formatpainter removeformat | pagebreak | charmap emoticons | fullscreen  preview save print | insertfile image media template link anchor | a11ycheck ltr rtl | showcomments addcomment table",
     'custom_undo_redo_levels': "10",
 	});
-  var commentModal = document.getElementById('commentModal')
+  var commentModal = document.getElementById('comment-modal')
   if (commentModal != null)
   {
     commentModal.addEventListener('show.bs.modal', function (event) {

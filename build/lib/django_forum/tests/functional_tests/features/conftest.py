@@ -78,6 +78,7 @@ def post_exists(post):
 
 
 @when("User visits the post view page", target_fixture="page")
+@when("Other user visits the post view page", target_fixture="page")
 def user_visits_post_view_page(browser, test_post):
     browser.visit(browser.domain + test_post.get_absolute_url())
     return browser

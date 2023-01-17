@@ -1,4 +1,5 @@
 import pytest
+
 from pytest_bdd import given, scenarios, then, when
 
 from django.contrib.auth import get_user_model
@@ -20,12 +21,14 @@ def user_clicks_subscribe_checkbox(page):
 
 
 @then("Subscribe checkbox is checked")
+@when("Subscribe checkbox is checked")
 def subscribe_checkbox_is_checked(page):
     assert page.is_checked("#subscribed_cb")
 
 
 @given("User is subscribed")
 @then("User is subscribed")
+@when("User is subscribed")
 def user_is_subscribed(db, test_post, subscribed_user):
     try:
         test_post.subscribed_users.get(username=subscribed_user.username)
@@ -35,4 +38,5 @@ def user_is_subscribed(db, test_post, subscribed_user):
 
 @when("Browser is refreshed")
 def browser_is_refreshed(page):
-    page.refresh_page()
+    page.open(page.get_current_url())
+    # page.refresh_page() - doesn't work in headless

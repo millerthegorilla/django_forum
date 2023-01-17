@@ -346,6 +346,7 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
         comment.save()
         sname: str = "subscribe_timeout" + str(uuid.uuid4())
         protocol = "https" if self.request.is_secure() else "http"
+        domain = self.request.get_host()
         tasks.schedule(
             "django_forum.tasks.send_subscribed_email",
             self.post_model._meta.app_label + "." + self.post_model._meta.object_name,
@@ -358,6 +359,7 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
             comment_id=comment.id,
             path=comment.get_absolute_url(),
             protocol=protocol,
+            domain=domain,
             s_name=sname,
         )
         return shortcuts.redirect(
@@ -434,9 +436,12 @@ class DeleteComment(auth.mixins.LoginRequiredMixin, views.generic.DeleteView):
     model = forum_models.Comment
 
     def get_success_url(self, *args, **kwwargs):
-        return urls.reverse(
-            "django_forum:post_view",
-            args=(self.object.post_fk.id, self.object.post_fk.slug),
+        return (
+            urls.reverse(
+                "django_forum:post_view",
+                args=(self.object.post_fk.id, self.object.post_fk.slug),
+            )
+            + "#thepost"
         )
 
 

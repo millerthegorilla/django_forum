@@ -292,7 +292,8 @@ ABSTRACTPROFILE = True
 
 # django_forum
 ABSTRACTPOST = False
-COMMENT_WAIT = timezone.timedelta(seconds=600)
+COMMENT_WAIT = timezone.timedelta(seconds=60)  # normally ten minutes ie 600 seconds,
+# to cover case where commenter deletes comment immediately after typing it
 
 SITE_DOMAIN = "http://127.0.0.1:8000"
 
@@ -304,6 +305,8 @@ SITE_ID = 1
 def verified_callback(user):
     user.is_active = True
 
+
+SUBSCRIBED_MSG = "<h3 style='color: blue;'></h3><br>A new comment has been added to a post that you are subscribed to!<br>Follow this link to view the post and comments: {}"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  # "django.core.mail.backends.locmem.EmailBackend"  # noqa: E501
 EMAIL_VERIFIED_CALLBACK = verified_callback

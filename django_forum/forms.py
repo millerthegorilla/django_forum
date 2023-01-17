@@ -185,7 +185,9 @@ class Post(messages_forms.Message):
 
 
 class Comment(messages_forms.Message):
-    text = forms.CharField(widget=forms.TextInput(attrs={"autofocus": "autofocus"}))
+    text = forms.CharField(
+        widget=forms.TextInput()
+    )  # attrs={"autofocus": "autofocus"}))
 
     class Meta:
         model = forum_models.Comment
@@ -203,7 +205,9 @@ class Comment(messages_forms.Message):
                 '<h3 id="comment" class="comment-headline">Comment away...!</h3>',
                 layout.Row(
                     layout.Column(
-                        layout.Field("text", css_class="comment-form-text"),
+                        layout.Field(
+                            "text", id="comment-text", css_class="comment-form-text"
+                        ),
                         layout.Div(
                             layout.HTML("<span>...characters left: 500</span>"),
                             id="count",
@@ -213,7 +217,12 @@ class Comment(messages_forms.Message):
                     ),
                     css_class="d-flex flex-row align-items-end",
                 ),
-                layout.Submit("save", "comment", css_class="col-auto mt-3"),
+                layout.Submit(
+                    "save",
+                    "comment",
+                    css_id="submit-comment",
+                    css_class="col-auto mt-3",
+                ),
                 css_class="tinfo",
             )
         )

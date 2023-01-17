@@ -20,7 +20,7 @@
     	                            </div>
                                 </div>
                             {% else %}
-                                <div>This comment has been reported and is awaiting moderation</div>
+                                <div id="mod-msg">This comment has been reported and is awaiting moderation.</div>
                             {% endif%}
                             {% if comment.author == request.user %}
                             <div id="comment-form-buttons-{{ forloop.counter }}" class="comment-form-buttons">
@@ -34,8 +34,8 @@
                                     </div>
                                     <div class="row">
                                     	<div class="col-auto ms-auto">
-                                    	    <a class="comment-save tinfo me-2" href="#">Save Comment</a>
-                                    	    <a id="{{ forloop.counter }}" class="comment-cancel tinfo" href="#">Cancel Update</a>
+                                    	    <a id="comment-save-{{ forloop.counter }}" class="comment-save tinfo me-2" href="#">Save Comment</a>
+                                    	    <a id="cancel-{{ forloop.counter }}" class="comment-cancel tinfo" href="#">Cancel Update</a>
                                         </div>
                                     </div>
                               	</form>
@@ -58,8 +58,8 @@
                         <div class="row justify-content-end mb-3">
 			                {% if comment.moderation_date is None and comment.author == request.user %}
 		                    <div id="comment-modify-btns-{{ forloop.counter }}" class="col-auto">
-			                	<a href="#" class="tinfo col-auto me-3" data-bs-toggle="modal" data-bs-target="#commentModal" data-bs-comment-id="{{comment.id}}" data-bs-comment-slug="{{comment.slug}}">Delete Comment</a>
-			                	<a id="{{ forloop.counter }}" class="comment-edit tinfo col-auto" href="#">Edit Comment</a>
+			                	<a id="delete-comment-{{ forloop.counter }}" href="#" class="tinfo col-auto me-3" data-bs-toggle="modal" data-bs-target="#comment-modal" data-bs-comment-id="{{comment.id}}" data-bs-comment-slug="{{comment.slug}}">Delete Comment</a>
+			                	<a id="edit-comment-{{ forloop.counter }}" class="comment-edit tinfo col-auto" href="#">Edit Comment</a>
 				            </div>
 				            {% endif %}
 				        </div>
@@ -93,11 +93,11 @@
             </div>
             {% endif %}
 			<!-- Confirm Delete Comment Modal -->
-            <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+            <div class="modal fade" id="comment-modal" tabindex="-1" aria-labelledby="comment-modal-label" aria-hidden="true">
 				<div class="modal-dialog">
 				  <div class="modal-content">
 					<div class="modal-header">
-					  <h5 class="modal-title" id="commentModalLabel">Confirm Comment Deletion</h5>
+					  <h5 class="modal-title" id="comment-modal-label">Confirm Comment Deletion</h5>
 					  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
 					<div class="modal-body">

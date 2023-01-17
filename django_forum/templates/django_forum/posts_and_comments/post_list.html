@@ -19,7 +19,7 @@
                                         {% endthumbnail %}
                                     </td>
                                     <td>
-                                        <a href="{{ post.get_absolute_url|safe }}" class="tinfo">{{ post.title }}</a>
+                                        <a href="{{ post.get_absolute_url|safe }}#thepost" class="tinfo">{{ post.title }}</a>
                                     </td>
                                     <td>
                                         {{ post.text|striptags|safe|slice:":40" }}...

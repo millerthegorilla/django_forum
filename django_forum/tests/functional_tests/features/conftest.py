@@ -6,10 +6,14 @@ from pytest_bdd import given, scenarios, then, when
 
 POST_TEXT = "Ipsum Lorum Dolum Est"
 UPDATED_POST_TEXT = "Pissum Lawum Dole Est"
+COMMENT_TEXT = "Commenting is fun for trolls"
+UPDATED_COMMENT_TEXT = "Commenting is fun for trolls and james"
 
 CREATE_POST_URL = reverse("django_forum:post_create_view")
 # VIEW_POST_URL = forum_models.Post.objects.first().get_absolute_url()
 LIST_POST_URL = reverse("django_forum:post_list_view")
+
+PROFILE_URL = reverse("django_forum:profile_update_view")
 
 LINKS_DICT = {
     "create_post": f"a[href='{CREATE_POST_URL}']",
@@ -20,6 +24,7 @@ LINKS_DICT = {
 PAGES_DICT = {
     "create_post": CREATE_POST_URL,
     "list_post": LIST_POST_URL,
+    "profile": PROFILE_URL,
     #  "view_post": VIEW_POST_URL,
 }
 
@@ -35,6 +40,16 @@ def updated_post_text():
 
 
 @pytest.fixture()
+def comment_text():
+    return COMMENT_TEXT
+
+
+@pytest.fixture()
+def updated_comment_text():
+    return UPDATED_COMMENT_TEXT
+
+
+@pytest.fixture()
 def browser(sb, live_server, settings):
     staging_server = os.environ.get("STAGING_SERVER", False)
     if staging_server:
@@ -45,12 +60,19 @@ def browser(sb, live_server, settings):
     settings.EMAIL_PAGE_DOMAIN = sb.domain
     sb.pages = PAGES_DICT
     sb.links = LINKS_DICT
+    sb.maximize_window()
     return sb
 
 
 @pytest.fixture()
 def create_post_page(browser):
     browser.visit(browser.domain + CREATE_POST_URL)
+    return browser
+
+
+@pytest.fixture()
+def profile_page(browser):
+    browser.visit(browser.domain + PROFILE_URL)
     return browser
 
 
@@ -86,6 +108,7 @@ def other_user_is_logged_in(logged_in_page, other_user, other_user_details):
 
 
 @when("User visits the post view page", target_fixture="page")
+@when("Other user visits the post view page", target_fixture="page")
 def user_visits_post_view_page(browser, test_post):
     browser.visit(browser.domain + test_post.get_absolute_url())
     return browser

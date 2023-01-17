@@ -11,4 +11,4 @@ def user_visits_posts_page(db, browser):
 
 @then("The post is listed")
 def post_is_listed(test_post, page):
-    page.assert_element(f"a[href='/post/{test_post.id}/{test_post.slug}/']")
+    page.assert_element(f"a[href='/post/{test_post.id}/{test_post.slug}/#thepost']")

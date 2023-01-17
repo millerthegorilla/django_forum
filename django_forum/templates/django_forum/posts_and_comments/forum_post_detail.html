@@ -9,7 +9,7 @@
 <script src="{% static 'tinymce/jquery.tinymce.min.js' %}" type="application/javascript" referrerpolicy="origin"></script>
 {% endblock form_media %}
 {% block content %}
-<div class="container" class="post-and-comments-container">
+<div id="thepost" class="container" class="post-and-comments-container">
 	<div class="row h-75 my-auto">
 		{% include './post.html' %}
 		{% include './comment.html' %}
