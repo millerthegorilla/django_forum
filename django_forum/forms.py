@@ -103,7 +103,7 @@ class ForumProfile(profile_forms.Profile):
                 '<span class="tinfo">Address details are only necessary if there is going to be mail for users</span>'
             ),
             layout.HTML(
-                '<a class="btn btn-primary mb-3 ms-3" data-bs-toggle="collapse" \
+                '<a id="address-btn" class="btn btn-primary mb-3 ms-3" data-bs-toggle="collapse" \
                      href="#collapseAddress" role="button" aria-expanded="false" \
                      aria-controls="collapseAddress">Address details</a><br>'
             ),

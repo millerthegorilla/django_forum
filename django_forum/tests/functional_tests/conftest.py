@@ -8,11 +8,22 @@ from django.template import defaultfilters
 
 class UserDetails:
     def __init__(self):
-        fake = Faker()
+        fake = Faker("en_GB")
         fake.random.seed(random.randint(0, 999))
-        self.display_name = fake.first_name() + "123"
         self.first_name = fake.first_name()
         self.last_name = fake.last_name()
+        self.display_name = self.first_name + " " + self.last_name
+        self.address1 = (
+            str(random.randint(1, 50))
+            + " "
+            + fake.street_name()
+            + " "
+            + fake.street_suffix()
+        )
+        self.address2 = fake.street_name()
+        self.city = fake.city()
+        self.country = fake.country()
+        self.postcode = fake.postcode().replace(" ", "")
         self.domain = fake.domain_name()
         self.username = self.first_name + str(random.randint(101, 999))
         self.password = fake.password(14)

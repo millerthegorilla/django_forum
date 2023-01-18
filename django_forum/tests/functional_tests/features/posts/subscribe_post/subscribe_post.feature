@@ -29,7 +29,7 @@ Feature: Subscribing to posts
         Then User is not subscribed
         And Subscribe checkbox is not checked
 
-    @locutus
+
     Scenario:  User creates a comment on a post that is subscribed
         Given Other user is logged in
         And A post exists

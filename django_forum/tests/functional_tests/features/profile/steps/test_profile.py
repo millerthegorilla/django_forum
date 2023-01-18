@@ -41,6 +41,7 @@ def user_can_see_last_name_input(page):
 
 
 @then("Address details are hidden")
+@when("Address details are hidden")
 def address_details_are_hidden(page):
     assert not page.is_element_visible("#collapseAddress")
 
@@ -77,5 +78,41 @@ def user_record_is_updated(django_user_model, other_user_details):
         assert user.email == other_user_details.email
         assert user.first_name == other_user_details.first_name
         assert user.last_name == other_user_details.last_name
+    except django_user_model.DoesNotExist:
+        raise django_user_model.DoesNotExist("User does not Exist")
+
+
+@when("User clicks address button")
+def user_clicks_address_button(page):
+    page.click("#address-btn")
+
+
+@then("Address inputs are visible")
+def address_inputs_are_visible(page):
+    assert page.is_element_visible("#id_address_line_1")
+    assert page.is_element_visible("#id_address_line_2")
+    assert page.is_element_visible("#id_city")
+    assert page.is_element_visible("#id_country")
+    assert page.is_element_visible("#id_postcode")
+
+
+@when("User enters address details")
+def enters_address_details(page, other_user_details):
+    page.type("#id_address_line_1", other_user_details.address1)
+    page.type("#id_address_line_2", other_user_details.address2)
+    page.type("#id_city", other_user_details.city)
+    page.type("#id_country", other_user_details.country)
+    page.type("#id_postcode", other_user_details.postcode)
+
+
+@then("User address is updated")
+def user_address_is_updated(django_user_model, user_details, other_user_details):
+    try:
+        user = django_user_model.objects.get(username=user_details.username)
+        assert user.profile.address_line_1 == other_user_details.address1
+        assert user.profile.address_line_2 == other_user_details.address2
+        assert user.profile.city == other_user_details.city
+        assert user.profile.country == other_user_details.country
+        assert user.profile.postcode == other_user_details.postcode
     except django_user_model.DoesNotExist:
         raise django_user_model.DoesNotExist("User does not Exist")

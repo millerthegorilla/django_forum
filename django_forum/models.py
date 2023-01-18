@@ -91,7 +91,7 @@ class ForumProfile(profile_models.Profile):
         "country", max_length=30, blank=True, default=""
     )
     postcode: db_models.CharField = db_models.CharField(
-        "postcode", max_length=6, blank=True, default=""
+        "postcode", max_length=10, blank=True, default=""
     )
     avatar: db_models.OneToOneField = db_models.OneToOneField(
         Avatar, on_delete=db_models.CASCADE, related_name="user_profile"

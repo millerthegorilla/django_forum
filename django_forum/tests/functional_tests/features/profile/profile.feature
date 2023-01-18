@@ -23,3 +23,21 @@ Feature: Profile page
         And User enters different information
         And User clicks submit button
         Then User record is updated
+
+
+    Scenario: Viewing the address details
+        Given User is logged in
+        When User visits the profile page
+        And Address details are hidden
+        And User clicks address button
+        Then Address inputs are visible
+
+
+    Scenario: Entering address details
+        Given User is logged in
+        When User visits the profile page
+        And User clicks address button
+        And User enters address details
+        And User clicks submit button
+        Then User address is updated
+
