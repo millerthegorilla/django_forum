@@ -1,13 +1,13 @@
 Feature: Subscribing to posts
 
+    @locutus
     Scenario: User subscribes to a post
         Given User is logged in
         And A post exists
         When User visits the post view page
         And User clicks subscribe checkbox
-        And Browser is refreshed
-        Then Subscribe checkbox is checked
-        And User is subscribed
+        Then User is subscribed
+        And Browser is refreshed and subscribe checkbox is checked
 
 
     Scenario: Subscribe checkbox is checked
@@ -25,9 +25,8 @@ Feature: Subscribing to posts
         When User visits the post view page
         And Subscribe checkbox is checked
         And User clicks subscribe checkbox
-        And Browser is refreshed
         Then User is not subscribed
-        And Subscribe checkbox is not checked
+        And Browser is refreshed and subscribe checkbox is not checked
 
 
     Scenario:  User creates a comment on a post that is subscribed

@@ -10,3 +10,4 @@ def user_clicks_the_edit_post_button(page):
 @then("User clicks the save button")
 def user_clicks_the_save_button(db, page):
     page.click("#editor-submit-btn")
+    page.sleep(0.2)

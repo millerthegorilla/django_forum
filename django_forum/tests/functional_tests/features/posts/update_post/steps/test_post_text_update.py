@@ -3,16 +3,6 @@ from django_forum import models as forum_models
 
 scenarios("../post_text_update.feature")
 
-# Given User is logged in
-#         And a post exists
-#         When User visits the post view page
-#         And User clicks the edit post button
-#         Then tinymce is displayed
-#         And User changes the post text
-#         And User clicks the save button
-#         Then the updated post is saved
-#         And User is redirected to view post page
-
 
 @then("tinymce is displayed")
 def tinymce_is_displayed(page):

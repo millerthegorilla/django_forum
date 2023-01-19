@@ -85,6 +85,7 @@ def user_record_is_updated(django_user_model, other_user_details):
 @when("User clicks address button")
 def user_clicks_address_button(page):
     page.click("#address-btn")
+    page.find_element("#id_postcode")
 
 
 @then("Address inputs are visible")

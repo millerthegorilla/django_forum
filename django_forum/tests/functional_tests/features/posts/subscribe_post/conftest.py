@@ -18,12 +18,7 @@ def subscribed_user(active_user, test_post):
 @when("User clicks subscribe checkbox")
 def user_clicks_subscribe_checkbox(page):
     page.click("#subscribed_cb")
-
-
-@then("Subscribe checkbox is checked")
-@when("Subscribe checkbox is checked")
-def subscribe_checkbox_is_checked(page):
-    assert page.is_checked("#subscribed_cb")
+    page.wait(0.2)
 
 
 @given("User is subscribed")
@@ -36,7 +31,9 @@ def user_is_subscribed(db, test_post, subscribed_user):
         assert False, f"User {subscribed_user.username} is not subscribed"
 
 
-@when("Browser is refreshed")
-def browser_is_refreshed(page):
-    page.open(page.get_current_url())
-    # page.refresh_page() - doesn't work in headless
+# @when("Browser is refreshed")
+# def browser_is_refreshed(page):
+#     page.open(page.get_current_url())
+#     page.wait_for_ready_state_complete()
+#     return page
+# page.refresh_page() - doesn't work in headless

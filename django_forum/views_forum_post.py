@@ -252,7 +252,9 @@ def subscribe(request) -> http.JsonResponse:
         and request.method == "POST"
     ):
         try:
-            fp = post_model.objects.get(slug=request.POST["slug"])
+            fp = post_model.objects.prefetch_related("subscribed_users").get(
+                slug=request.POST["slug"]
+            )
             if request.POST["data"] == "true":
                 fp.subscribed_users.add(request.user)
             else:
