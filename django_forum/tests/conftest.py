@@ -6,6 +6,32 @@ from django.urls import reverse
 from django.template import defaultfilters
 
 
+POST_TEXT = "Ipsum Lorum Dolum Est"
+UPDATED_POST_TEXT = "Pissum Lawum Dole Est"
+COMMENT_TEXT = "Commenting is fun for trolls"
+UPDATED_COMMENT_TEXT = "Commenting is fun for trolls and james"
+
+
+@pytest.fixture()
+def post_text():
+    return POST_TEXT
+
+
+@pytest.fixture()
+def updated_post_text():
+    return UPDATED_POST_TEXT
+
+
+@pytest.fixture()
+def comment_text():
+    return COMMENT_TEXT
+
+
+@pytest.fixture()
+def updated_comment_text():
+    return UPDATED_COMMENT_TEXT
+
+
 class UserDetails:
     def __init__(self):
         fake = Faker("en_GB")
@@ -45,21 +71,23 @@ def user(
     transactional_db, django_user_model
 ):  # transactional_db because using live_server
     def create_user(details):
-        user = django_user_model.objects.create(
+        user = django_user_model.objects.get_or_create(
             username=details.username,
             password=details.password,  # https://stackoverflow.com/questions/2619102/djangos-self-client-login-does-not-work-in-unit-tests  # noqa: E501
             first_name=details.first_name,
             last_name=details.last_name,
             email=details.email,
         )
-        user.set_password(details.password)
-        user.is_active = False
-        user.save()
-        user.profile.display_name = defaultfilters.slugify(
-            details.first_name + " " + details.last_name
-        )
-        user.profile.save(update_fields=["display_name"])
-        return user
+        theuser = user[0]
+        if user[1] == True:
+            theuser.set_password(details.password)
+            theuser.is_active = False
+            theuser.save()
+            theuser.profile.display_name = defaultfilters.slugify(
+                details.first_name + " " + details.last_name
+            )
+            theuser.profile.save(update_fields=["display_name"])
+        return theuser
 
     return create_user
 

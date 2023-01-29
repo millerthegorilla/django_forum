@@ -37,7 +37,7 @@ class ForumProfile(profile_views.ProfileUpdate):
     model = forum_models.ForumProfile
     post_model = forum_models.Post
     form_class = forum_forms.ForumProfile
-    user_form_class = forum_forms.ForumProfileUser
+    user_form_class = forum_forms.ForumUserProfile
     success_url = urls.reverse_lazy("django_forum:profile_update_view")
     template_name = "django_forum/profile/forum_profile_update_form.html"
 
@@ -78,7 +78,13 @@ class ForumProfile(profile_views.ProfileUpdate):
             return shortcuts.render(
                 request,
                 self.template_name,
-                context={"form": form, "user_form": user_form},
+                context={
+                    "avatar": self.model.objects.get(
+                        profile_user=self.request.user
+                    ).avatar,
+                    "form": form,
+                    "user_form": user_form,
+                },
             )
 
         return shortcuts.redirect(self.success_url)

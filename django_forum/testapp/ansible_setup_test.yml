@@ -9,8 +9,8 @@
       containers.podman.podman_pod:
         name: django_forum_test_pod
         publish:
-          - 8000:8000
-          - 7900:7900
+          - 8000:8000    # django server
+          - 7900:7900    # selenium grid container
         state: started
     - name: Create volume if it doesn't exist
       containers.podman.podman_volume:
@@ -46,7 +46,7 @@
         path: ./dockerfile_python
         build:
           # cache: false
-          extra_args: "-f './dockerfile_python/Dockerfile_Test'"
+          extra_args: "-f './dockerfile_python/Dockerfile_Run'"
         state: present
       register: build_output
     - debug: var=build_output
@@ -67,15 +67,15 @@
         pod: django_forum_test_pod
       register: output
     - debug: var=output
-    - name: podman exec pip install
-      shell: podman exec -it django_forum_test_cont bash -c '! pip show django &>/dev/null && 
-          pip install -r /opt/ceramic_isles_test/django_forum/testapp/dockerfile_python/pip_requirements'
-      register: pip_output
-      # when: build_output.changed # 'pip_run|bool != True'
-      tags: pip_install
-    - debug: var=pip_output # .stdout_lines
-    - name: test pytest output
-      shell: echo '{{ output.stdout }}'
-      register: test_output
-    - debug: var=test_output.stdout_lines
+    # - name: podman exec pip install
+    #   shell: podman exec -it django_forum_test_cont bash -c '! pip show django &>/dev/null && 
+    #       pip install -r /opt/ceramic_isles_test/django_forum/testapp/dockerfile_python/pip_requirements'
+    #   register: pip_output
+    #   # when: build_output.changed # 'pip_run|bool != True'
+    #   tags: pip_install
+    # - debug: var=pip_output # .stdout_lines
+    # - name: test pytest output
+    #   shell: echo '{{ output.stdout }}'
+    #   register: test_output
+    # - debug: var=test_output.stdout_lines
 

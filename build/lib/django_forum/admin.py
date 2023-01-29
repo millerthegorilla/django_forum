@@ -6,7 +6,7 @@ from django.contrib import admin, messages
 from django.db import models as db_models
 
 from django_messages import soft_deletion
-from django_profile import models as profile_models
+from django_profile import models as forum_models
 
 from . import models as forum_models
 
@@ -219,7 +219,7 @@ except AttributeError:
     abs_forum_profile = False
 if not abs_forum_profile:
     if not conf.settings.ABSTRACTPROFILE:
-        admin.site.unregister(profile_models.Profile)
+        admin.site.unregister(forum_models.Profile)
 
     @admin.register(forum_models.ForumProfile)
     class ForumProfile(admin.ModelAdmin):
@@ -282,7 +282,10 @@ class Comment(soft_deletion.Admin):
     # make row sortable
     post_str.admin_order_field = "post"  # type: ignore
 
-    actions = ["approve_comment", "hard_delete_comment",]
+    actions = [
+        "approve_comment",
+        "hard_delete_comment",
+    ]
 
     def approve_comment(self, request: http.HttpRequest, queryset: db_models.QuerySet):
         updated = queryset.update(moderation_date=None)
@@ -316,4 +319,3 @@ class Comment(soft_deletion.Admin):
             % idx,
             messages.SUCCESS,
         )
-

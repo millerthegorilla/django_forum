@@ -4,11 +4,6 @@ from django.urls import reverse
 from django_forum import models as forum_models
 from pytest_bdd import given, scenarios, then, when
 
-POST_TEXT = "Ipsum Lorum Dolum Est"
-UPDATED_POST_TEXT = "Pissum Lawum Dole Est"
-COMMENT_TEXT = "Commenting is fun for trolls"
-UPDATED_COMMENT_TEXT = "Commenting is fun for trolls and james"
-
 CREATE_POST_URL = reverse("django_forum:post_create_view")
 # VIEW_POST_URL = forum_models.Post.objects.first().get_absolute_url()
 LIST_POST_URL = reverse("django_forum:post_list_view")
@@ -27,26 +22,6 @@ PAGES_DICT = {
     "profile": PROFILE_URL,
     #  "view_post": VIEW_POST_URL,
 }
-
-
-@pytest.fixture()
-def post_text():
-    return POST_TEXT
-
-
-@pytest.fixture()
-def updated_post_text():
-    return UPDATED_POST_TEXT
-
-
-@pytest.fixture()
-def comment_text():
-    return COMMENT_TEXT
-
-
-@pytest.fixture()
-def updated_comment_text():
-    return UPDATED_COMMENT_TEXT
 
 
 @pytest.fixture()
@@ -82,10 +57,10 @@ def post_exists(post):
 
 
 @pytest.fixture()
-def post(db, active_user):
+def post(db, active_user, post_text):
     def posty():
         return forum_models.Post.objects.get_or_create(
-            author=active_user, title="Title", text=POST_TEXT
+            author=active_user, title="Title", text=post_text
         )[0]
 
     return posty

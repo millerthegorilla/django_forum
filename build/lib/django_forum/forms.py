@@ -12,7 +12,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
-from django_profile import forms as profile_forms
+from django_profile import forms as forum_forms
 from django_messages import forms as messages_forms
 
 from . import models as forum_models
@@ -43,13 +43,13 @@ class UsernameField(CharField):
 #     def __init__(*args, **kwargs):
 
 # this class is here to provide the user's forum profile
-class ForumProfileUser(profile_forms.UserProfile):
+class ForumUserProfile(forum_forms.UserProfile):
     # model = get_user_model()
     username = UsernameField()
 
-    class Meta(profile_forms.UserProfile.Meta):
-        model = profile_forms.UserProfile.Meta.model
-        exclude = profile_forms.UserProfile.Meta.exclude
+    class Meta(forum_forms.UserProfile.Meta):
+        model = forum_forms.UserProfile.Meta.model
+        exclude = forum_forms.UserProfile.Meta.exclude
 
     # def clean(self, *args, **kwargs):
     #     breakpoint()
@@ -83,10 +83,10 @@ class ForumProfileUser(profile_forms.UserProfile):
     #     return username
 
 
-class ForumProfile(profile_forms.Profile):
-    class Meta(profile_forms.Profile.Meta):
+class ForumProfile(forum_forms.Profile):
+    class Meta(forum_forms.Profile.Meta):
         model = forum_models.ForumProfile
-        fields = profile_forms.Profile.Meta.fields + [
+        fields = forum_forms.Profile.Meta.fields + [
             "address_line_1",
             "address_line_2",
             "city",

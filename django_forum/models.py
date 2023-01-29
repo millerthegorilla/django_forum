@@ -13,7 +13,7 @@ from django.db import models as db_models
 from django.db.models import signals
 from django.contrib.auth import get_user_model
 
-from django_profile import models as profile_models
+from django_profile import models as forum_models
 from django_messages import models as messages_models
 
 logger = logging.getLogger("django_artisan")
@@ -77,7 +77,7 @@ def auto_delete_file_on_change(sender: Avatar, instance: Avatar, **kwargs):
 # END AVATAR
 
 
-class ForumProfile(profile_models.Profile):
+class ForumProfile(forum_models.Profile):
     address_line_1: db_models.CharField = db_models.CharField(
         "address line 1", max_length=30, blank=True, default=""
     )
@@ -120,8 +120,8 @@ class ForumProfile(profile_models.Profile):
 """
     disconnect dummy profile
 """
-signals.post_save.disconnect(profile_models.create_user_profile, sender=User)
-# signals.post_save.disconnect(profile_models.save_user_profile, sender=User)
+signals.post_save.disconnect(forum_models.create_user_profile, sender=User)
+# signals.post_save.disconnect(forum_models.save_user_profile, sender=User)
 """
     Custom signals to create and update user profile
 """

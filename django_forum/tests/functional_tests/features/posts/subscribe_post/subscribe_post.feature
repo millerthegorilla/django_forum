@@ -1,6 +1,6 @@
 Feature: Subscribing to posts
 
-    @locutus
+
     Scenario: User subscribes to a post
         Given User is logged in
         And A post exists
