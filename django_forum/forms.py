@@ -31,7 +31,6 @@ def validate_username(self, *args, **kwargs):
 
 
 class UsernameField(CharField):
-
     default_validators = [validate_username]
 
     def clean(self, *args, **kwargs):
@@ -41,6 +40,7 @@ class UsernameField(CharField):
 # START FORUMPROFILE
 # class AvatarForm(forms.Form):
 #     def __init__(*args, **kwargs):
+
 
 # this class is here to provide the user's forum profile
 class ForumUserProfile(forum_forms.UserProfile):
@@ -247,7 +247,6 @@ class Comment(messages_forms.Message):
 
 ## TODO add choices field to search page
 class PostListSearch(forms.Form):
-
     # date constants for search page published at dropdown, where each constant represents
     # a time range tuple (created_at__lt, created_at__gt)
     # in django_forum.views.py line 91
@@ -256,57 +255,70 @@ class PostListSearch(forms.Form):
         utils.timezone.now().year, utils.timezone.now().month, 1
     ) - timedelta(1)
     DATE_ANY = 0
-    DATE_TODAY = (
-        utils.timezone.now(),
-        datetime(
-            utils.timezone.now().year,
-            utils.timezone.now().month,
-            utils.timezone.now().day,
-            0,
-            0,
-            0,
-        ),
+    DATE_TODAY = staticmethod(
+        lambda: (
+            utils.timezone.now(),
+            datetime(
+                utils.timezone.now().year,
+                utils.timezone.now().month,
+                utils.timezone.now().day,
+                0,
+                0,
+                0,
+            ),
+        )
     )
-    DATE_WEEK = (utils.timezone.now(), utils.timezone.now() - timedelta(7))
-    DATE_WEEK_LAST = (
-        utils.timezone.now() - timedelta(7),
-        utils.timezone.now() - timedelta(14),
+    DATE_WEEK = staticmethod(
+        lambda: (utils.timezone.now(), utils.timezone.now() - timedelta(7))
     )
-    DATE_MONTH_LAST = (
-        datetime(
-            date_end_of_last_month.year,
-            date_end_of_last_month.month,
-            date_end_of_last_month.day,
-            tzinfo=timezone.utc,
-        ),
-        datetime(
-            date_end_of_last_month.year,
-            date_end_of_last_month.month,
-            1,
-            tzinfo=timezone.utc,
-        ),
+    DATE_WEEK_LAST = staticmethod(
+        lambda: (
+            utils.timezone.now() - timedelta(7),
+            utils.timezone.now() - timedelta(14),
+        )
     )
-    DATE_YEAR_NOW = (
-        utils.timezone.now(),
-        datetime(utils.timezone.now().year, 1, 1, tzinfo=timezone.utc),
+    DATE_MONTH_LAST = staticmethod(
+        lambda: (
+            datetime(
+                date_end_of_last_month.year,
+                date_end_of_last_month.month,
+                date_end_of_last_month.day,
+                tzinfo=timezone.utc,
+            ),
+            datetime(
+                date_end_of_last_month.year,
+                date_end_of_last_month.month,
+                1,
+                tzinfo=timezone.utc,
+            ),
+        )
     )
-    DATE_YEAR_LAST = (
-        datetime(utils.timezone.now().year - 1, 12, 31, tzinfo=timezone.utc),
-        datetime(utils.timezone.now().year - 1, 1, 1, tzinfo=timezone.utc),
+    DATE_YEAR_NOW = staticmethod(
+        lambda: (
+            utils.timezone.now(),
+            datetime(utils.timezone.now().year, 1, 1, tzinfo=timezone.utc),
+        )
     )
+    DATE_YEAR_LAST = staticmethod(
+        lambda: (
+            datetime(utils.timezone.now().year - 1, 12, 31, tzinfo=timezone.utc),
+            datetime(utils.timezone.now().year - 1, 1, 1, tzinfo=timezone.utc),
+        )
+    )
+
+    DATES = {}
+    DATES["DATE_ANY"] = DATE_ANY
+    DATES["DATE_TODAY"] = DATE_TODAY
+    DATES["DATE_WEEK"] = DATE_WEEK
+    DATES["DATE_WEEK_LAST"] = DATE_WEEK_LAST
+    DATES["DATE_MONTH_LAST"] = DATE_MONTH_LAST
+    DATES["DATE_YEAR_NOW"] = DATE_YEAR_NOW
+    DATES["DATE_YEAR_LAST"] = DATE_YEAR_LAST
 
     # from dateparser import parse  TODO add search verbs to allow time phrases to be passed
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.DATES = {}
-        self.DATES["DATE_ANY"] = self.DATE_ANY
-        self.DATES["DATE_TODAY"] = self.DATE_TODAY
-        self.DATES["DATE_WEEK"] = self.DATE_WEEK
-        self.DATES["DATE_WEEK_LAST"] = self.DATE_WEEK_LAST
-        self.DATES["DATE_MONTH_LAST"] = self.DATE_MONTH_LAST
-        self.DATES["DATE_YEAR_NOW"] = self.DATE_YEAR_NOW
-        self.DATES["DATE_YEAR_LAST"] = self.DATE_YEAR_LAST
 
     DATE_CHOICES = (
         ("DATE_ANY", "Any"),

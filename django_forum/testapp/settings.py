@@ -124,7 +124,7 @@ INTERNAL_IPS = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "db.sqlite3",
+        "NAME": "/opt/ceramic_isles_test/db.sqlite3",
         "TEST": {
             "NAME": "testdb.sqlite3",
         },
@@ -295,10 +295,14 @@ ABSTRACTPOST = False
 COMMENT_WAIT = timezone.timedelta(seconds=60)  # normally ten minutes ie 600 seconds,
 # to cover case where commenter deletes comment immediately after typing it
 
+# pagination of posts in post list
+NUMPOSTS = 5
+
 SITE_DOMAIN = "http://127.0.0.1:8000"
 
 # contrib.sites
 SITE_ID = 1
+
 
 # django_users
 # DJANGO-EMAIL-VERIFICATION SETTINGS

@@ -13,23 +13,23 @@
                         {% for post in page_obj.object_list %}
                             {% if not post.moderation_date %}
                             <tr >
-                                    <td>
-                                        {% thumbnail post.author.profile.avatar.image_file "50x50" crop="center" as im %}
-                                            <img src="{{ im.url }}" height="{{ im.height }}" width="{{ im.width }}" class="rounded-circle" id="image-{{ post.author.profile.display_name }}_avatar-image" title="{{ post.author.profile.display_name }}" alt="{{ post.author.profile.display_name }}"/>
-                                        {% endthumbnail %}
-                                    </td>
-                                    <td>
-                                        <a href="{{ post.get_absolute_url|safe }}#thepost" class="tinfo">{{ post.title }}</a>
-                                    </td>
-                                    <td>
-                                        {{ post.text|striptags|safe|slice:":40" }}...
-                                    </td>
-                                    <td class="text-center">
-                                        {{ post.comments.count }}
-                                    </td>
-                                    <td>
-                                        {{ post.created_at|date }}
-                                    </td>
+                               <td>
+                                {% thumbnail post.author.profile.avatar.image_file "50x50" crop="center" as im %}
+                                    <img src="{{ im.url }}" height="{{ im.height }}" width="{{ im.width }}" class="rounded-circle" id="image-{{ post.author.profile.display_name }}_avatar-image" title="{{ post.author.profile.display_name }}" alt="{{ post.author.profile.display_name }}"/>
+                                {% endthumbnail %}
+                                </td>
+                                <td>
+                                    <a href="{{ post.get_absolute_url|safe }}#thepost" class="tinfo">{{ post.title }}</a>
+                                </td>
+                                <td>
+                                    {{ post.text|striptags|safe|slice:":40" }}...
+                                </td>
+                                <td class="text-center">
+                                    {{ post.comments.count }}
+                                </td>
+                                <td>
+                                    {{ post.created_at|date }}
+                                </td>
                             </tr>
                             {% endif %}
                         {% endfor %}

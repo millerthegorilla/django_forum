@@ -64,3 +64,5 @@ pytest-xdist
 django_profile @ git+https://github.com/millerthegorilla/django_profile@main#egg=django_profile
 django_messages @ git+https://github.com/millerthegorilla/django_messages@main#egg=django_messages
 safe_imagefield @ git+https://github.com/millerthegorilla/safe_imagefield@main#egg=safe_imagefield
+wheel
+django-mock-queries

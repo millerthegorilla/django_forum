@@ -53,7 +53,7 @@ class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
     template_name = "django_forum/posts_and_comments/forum_post_create_form.html"
     form_class = forum_forms.Post
 
-    def get_context_data(self, form=None):
+    def get_context_data(self, form: forum_forms.Post = None):
         if form and "text" in form.errors.keys():
             form.errors["text"] = [
                 "A post needs some text! - you tried to submit a blank value...  Try again :)"
@@ -84,7 +84,7 @@ class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
 class PostList(auth.mixins.LoginRequiredMixin, generic.list.ListView):
     model = forum_models.Post
     template_name = "django_forum/posts_and_comments/forum_post_list.html"
-    paginate_by = 5
+    paginate_by = conf.settings.NUMPOSTS
     """
        the documentation for django-elasticsearch and elasticsearch-py
        as well as elasticsearch is not particularly good, at least not in my experience.
@@ -133,9 +133,7 @@ class PostList(auth.mixins.LoginRequiredMixin, generic.list.ListView):
             )
             for sr in queryset_comments:
                 queryset = queryset | self.model.objects.filter(id=sr.post_fk.id)
-            time_range = eval(
-                "form." + form["published"].value()
-            )  #### TODO !!! eval is evil.
+            time_range = form.DATES[form["published"].value()]()
             search = len(queryset)
             if search and time_range:
                 queryset = (
@@ -173,7 +171,7 @@ class PostList(auth.mixins.LoginRequiredMixin, generic.list.ListView):
             "search": search,
             "is_a_search": is_a_search,
             "site_url": (request.scheme or "https") + "://" + request.get_host(),
-        }  # site.domain}
+        }
         return shortcuts.render(request, self.template_name, context)
 
 
