@@ -81,7 +81,6 @@ MIDDLEWARE = [
 if DEBUG:
     MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE
 
-
 ROOT_URLCONF = "django_forum.testapp.urls"
 
 LOGIN_URL = urls.reverse_lazy("django_users:login")

@@ -7,13 +7,14 @@ import bleach
 
 from django_q import tasks
 
-from django import http, shortcuts, urls, views, utils, conf
+from django import http, urls, shortcuts, views, utils, conf
 from django.apps import apps
 from django.core import mail
 from django.core.cache import cache as template_cache
 from django.core import paginator as pagination
 from django.core.cache.utils import make_template_fragment_key
-from django.contrib import auth
+from django.contrib.auth import get_user_model
+from django.contrib.auth import mixins
 from django.template import defaultfilters
 from django.views.decorators import cache
 from django.views import generic
@@ -39,7 +40,7 @@ def send_mod_mail(type: str) -> None:
         ),
         conf.settings.EMAIL_HOST_USER,
         list(
-            auth.get_user_model()
+            get_user_model()
             .objects.filter(is_staff=True)
             .values_list("email", flat=True)
         ),
@@ -48,7 +49,7 @@ def send_mod_mail(type: str) -> None:
 
 
 # START POSTS AND COMMENTS
-class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
+class PostCreate(mixins.LoginRequiredMixin, generic.edit.CreateView):
     model = forum_models.Post
     template_name = "django_forum/posts_and_comments/forum_post_create_form.html"
     form_class = forum_forms.Post
@@ -81,7 +82,7 @@ class PostCreate(auth.mixins.LoginRequiredMixin, generic.edit.CreateView):
 
 
 @utils.decorators.method_decorator(cache.never_cache, name="dispatch")
-class PostList(auth.mixins.LoginRequiredMixin, generic.list.ListView):
+class PostList(mixins.LoginRequiredMixin, generic.list.ListView):
     model = forum_models.Post
     template_name = "django_forum/posts_and_comments/forum_post_list.html"
     paginate_by = conf.settings.NUMPOSTS
@@ -175,35 +176,10 @@ class PostList(auth.mixins.LoginRequiredMixin, generic.list.ListView):
         return shortcuts.render(request, self.template_name, context)
 
 
-## autocomplete now removed to reduce number of requests
-# def autocomplete(request):
-#     max_items = 5
-#     q = request.GET.get('q')
-#     results = []
-#     if q:
-#         search = Post.search().suggest('results', q, term={'field':'text'})
-#         result = search.execute()
-#         for idx,item in enumerate(result.suggest['results'][0]['options']):
-#             results.append(item.text)
-#     return JsonResponse({
-#         'results': results
-#     })
-
-# END POSTS AND COMMENTS
-
-
 @utils.decorators.method_decorator(cache.never_cache, name="dispatch")
 @utils.decorators.method_decorator(cache.never_cache, name="get")
-class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
-    """
-    TODO: Replace superclass form processing if conditions with separate urls/views
-          and overload them individually here, where necessary, instead of redefining
-          the whole if clause.
-    """
-
+class PostView(mixins.LoginRequiredMixin, generic.DetailView):
     model: forum_models.Post = forum_models.Post
-    slug_url_kwarg: str = "slug"
-    slug_field: str = "slug"
     template_name: str = "django_forum/posts_and_comments/forum_post_detail.html"
     form_class: forum_forms.Post = forum_forms.Post
     comment_form_class: forum_forms.Comment = forum_forms.Comment
@@ -214,21 +190,24 @@ class PostView(auth.mixins.LoginRequiredMixin, generic.DetailView):
             .select_related("author__profile")
             .select_related("author__profile__avatar")
         )
-        context = self.get_context_data()
-        context["post"] = self.object
-        context["title_errors"] = ""
-        context["text_errors"] = ""
+        context = self.get_context_data(request=request)
         return shortcuts.render(request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
+        request = kwargs["request"]
         context_data = {}
+        context_data["post"] = self.object
+        context_data["title_errors"] = ""
+        context_data["text_errors"] = ""
         context_data["site_url"] = (
-            (self.request.scheme or "https") + "://" + conf.settings.SITE_DOMAIN
+            (request.scheme or "https") + "://" + conf.settings.SITE_DOMAIN
         )
         context_data["comment_form"] = self.comment_form_class()  # type: ignore
-        context_data["subscribed"] = self.object.subscribed_users.filter(
-            username=self.request.user.username
-        ).count()
+        context_data["subscribed"] = (
+            context_data["post"]
+            .subscribed_users.filter(username=self.request.user.username)
+            .count()
+        )
         context_data["comments"] = (
             self.object.comments.all()
             .select_related("author")
@@ -249,23 +228,19 @@ def subscribe(request) -> http.JsonResponse:
         request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
         and request.method == "POST"
     ):
-        try:
-            fp = post_model.objects.prefetch_related("subscribed_users").get(
-                slug=request.POST["slug"]
-            )
-            if request.POST["data"] == "true":
-                fp.subscribed_users.add(request.user)
-            else:
-                fp.subscribed_users.remove(request.user)
-            return http.JsonResponse({}, status=200)
-        except post_model.DoesNotExist as e:
-            logger.error("There is no post with that slug : {0}".format(e))
-            return http.JsonResponse({"error": "no post with that slug"}, status=500)
+        fp = post_model.objects.prefetch_related("subscribed_users").get(
+            slug=request.POST["slug"]
+        )
+        if request.POST["data"] == "true":
+            fp.subscribed_users.add(request.user)
+        else:
+            fp.subscribed_users.remove(request.user)
+        return http.JsonResponse({}, status=200)
     else:
         return http.JsonResponse({"error": ""}, status=500)
 
 
-class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
+class PostUpdate(mixins.LoginRequiredMixin, generic.UpdateView):
     model = forum_models.Post
     a_name = "django_forum"
     form_class = forum_forms.Post
@@ -278,7 +253,8 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
             "text_errors": form.errors.get("text", ""),
             "title_errors": form.errors.get("title", ""),
         }
-        context_data["post"] = self.model.objects.get(id=self.object.id)
+        breakpoint()
+        context_data["post"] = self.object
         context_data["comments"] = (
             self.object.comments.all()
             .select_related("author")
@@ -292,10 +268,10 @@ class PostUpdate(auth.mixins.LoginRequiredMixin, generic.UpdateView):
 
     def form_valid(self, form):
         post = form.save()
-        return http.JsonResponse({"url": shortcuts.redirect(post).url}, status=200)
+        return http.JsonResponse({"url": post.get_absolute_url()}, status=200)
 
 
-class DeletePost(auth.mixins.LoginRequiredMixin, views.View):
+class DeletePost(mixins.LoginRequiredMixin, views.View):
     http_method_names = ["post"]
     model = forum_models.Post
     a_name = "django_forum"
@@ -313,7 +289,7 @@ class DeletePost(auth.mixins.LoginRequiredMixin, views.View):
         return shortcuts.redirect(urls.reverse_lazy(self.a_name + ":post_list_view"))
 
 
-class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
+class CreateComment(mixins.LoginRequiredMixin, views.generic.CreateView):
     post_model: forum_models.Post = forum_models.Post
     model: forum_models.Comment = forum_models.Comment
     form_class: forum_forms.Comment = forum_forms.Comment
@@ -369,70 +345,8 @@ class CreateComment(auth.mixins.LoginRequiredMixin, views.generic.CreateView):
             permanent=True,
         )
 
-    # def post(self, request: http.HttpRequest, pk: int, slug: str):
-    #     post = self.post_model.objects.get(pk=pk, slug=slug)
-    #     if not post.moderation_date:
-    #         comment_form = self.form_class(data=self.request.POST)
-    #         if comment_form.is_valid():
-    #             new_comment = comment_form.save(commit=False)
-    #             new_comment.author = request.user
-    #             new_comment.text = safestring.mark_safe(
-    #                 html.unescape(bleach.clean(new_comment.text, strip=False))
-    #             )
-    #             new_comment.slug = defaultfilters.slugify(
-    #                 new_comment.text[:4]
-    #                 + "_comment_"
-    #                 + str(new_comment.created_at or utils.timezone.now())
-    #             )
-    #             new_comment.post_fk = post
-    #             new_comment.save()
-    #             sname: str = "subscribe_timeout" + str(uuid.uuid4())
-    #             path: str = "/forum/{}/{}".format(
-    #                 self.kwargs["pk"], self.kwargs["slug"]
-    #             )
-    #             protocol = "https" if self.request.is_secure() else "http"
-    #             tasks.schedule(
-    #                 "django_forum.tasks.send_subscribed_email",
-    #                 self.post_model._meta.app_label
-    #                 + "."
-    #                 + self.post_model._meta.object_name,
-    #                 self.comment_model._meta.app_label
-    #                 + "."
-    #                 + self.comment_model._meta.object_name,
-    #                 name=sname,
-    #                 schedule_type="O",
-    #                 repeats=-1,
-    #                 next_run=utils.timezone.now() + conf.settings.COMMENT_WAIT,
-    #                 post_id=post.id,
-    #                 comment_id=new_comment.id,
-    #                 path=path,
-    #                 protocol=protocol,
-    #                 s_name=sname,
-    #             )
-    #             return shortcuts.redirect(new_comment, permanent=True)
-    #         else:
-    #             site = self.request.get_absolute_url()
-    #             comments = self.model.objects.filter(post_fk=post).all()
-    #             return shortcuts.render(
-    #                 self.request,
-    #                 self.template_name,
-    #                 {
-    #                     "comment_edit": True,
-    #                     "post": post,
-    #                     "comments": comments,
-    #                     "comment_form": comment_form,
-    #                     "site_url": (self.request.scheme or "https")
-    #                     + "://"
-    #                     + site.domain,
-    #                 },
-    #             )
-    #     return shortcuts.redirect(
-    #         urls.reverse_lazy(self.a_name + ":post_view", args=[post.id, post.slug]),
-    #         permanent=True,
-    #     )
 
-
-class DeleteComment(auth.mixins.LoginRequiredMixin, views.generic.DeleteView):
+class DeleteComment(mixins.LoginRequiredMixin, views.generic.DeleteView):
     model = forum_models.Comment
 
     def get_success_url(self, *args, **kwwargs):
@@ -445,12 +359,12 @@ class DeleteComment(auth.mixins.LoginRequiredMixin, views.generic.DeleteView):
         )
 
 
-class UpdateComment(auth.mixins.LoginRequiredMixin, views.generic.UpdateView):
+class UpdateComment(mixins.LoginRequiredMixin, views.generic.UpdateView):
     model = forum_models.Comment
     form_class = forum_forms.Comment
 
 
-class ReportComment(auth.mixins.LoginRequiredMixin, views.View):
+class ReportComment(mixins.LoginRequiredMixin, views.View):
     http_method_names = ["post"]
     comment_model = forum_models.Comment
     post_model = forum_models.Post
@@ -474,7 +388,7 @@ class ReportComment(auth.mixins.LoginRequiredMixin, views.View):
         )
 
 
-class ReportPost(auth.mixins.LoginRequiredMixin, views.View):
+class ReportPost(mixins.LoginRequiredMixin, views.View):
     http_method_names = ["post"]
     post_model = forum_models.Post
     a_name = "django_forum"

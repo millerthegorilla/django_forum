@@ -16,23 +16,23 @@ def postcreate_view():
     return forum_post_views.PostCreate()
 
 
-def test_post_create_get_context_data_no_form(mocker):
+def test_post_create_get_context_data_no_form(mocker, postcreate_view):
     mocker.patch(
         "django_forum.views_forum_post.PostCreate.form_class",
         new_callable=mocker.PropertyMock,
     )
-    response = pc_view.get_context_data()
+    response = postcreate_view.get_context_data()
     assert type(response) == dict
     forum_post_views.PostCreate.form_class.assert_called_once()
 
 
-def test_post_create_get_context_data_with_form_and_error(mocker):
+def test_post_create_get_context_data_with_form_and_error(mocker, postcreate_view):
     mocker.patch("django_forum.forms.Post")
     # mocker.patch("django_forum.forms.Post.errors")
     form = forum_forms.Post()
     form.errors.keys = mocker.MagicMock()
     form.errors.keys.return_value = ["text"]
-    response = pc_view.get_context_data(form)
+    response = postcreate_view.get_context_data(form)
 
 
 def test_post_create_form_valid_with_subscribe(
@@ -46,13 +46,15 @@ def test_post_create_form_valid_with_subscribe(
     postcreate_view.get_success_url.return_value = "/post/"
     mocker.patch("django_forum.forms.Post")
     mocker.patch("django_forum.models.Post.subscribed_users")
+    mocker.patch("django_forum.models.Post.save")
     # mocker_post.get_absolute_url.return_value =
     form = forum_forms.Post()
     form.save = mocker.MagicMock()
-    form.save.return_value = mock_post
+    mp = mock_post()
+    form.save.return_value = mp
     response = postcreate_view.form_valid(form)
-    mock_post.subscribed_users.add.assert_called_once()
-    mock_post.save.assert_called_once()
+    mp.subscribed_users.add.assert_called_once()
+    mp.save.assert_called_once()
     assert type(response) == http.response.HttpResponseRedirect
     assert response.status_code == 302
 
@@ -68,18 +70,20 @@ def test_post_create_form_valid_wout_subscribe(
     postcreate_view.get_success_url.return_value = "/post/"
     mocker.patch("django_forum.forms.Post")
     mocker.patch("django_forum.models.Post.subscribed_users")
+    mocker.patch("django_forum.models.Post.save")
     form = forum_forms.Post()
     form.save = mocker.MagicMock()
-    form.save.return_value = mock_post
+    mp = mock_post()
+    form.save.return_value = mp
     response = postcreate_view.form_valid(form)
-    mock_post.subscribed_users.add.assert_not_called()
-    mock_post.save.assert_called_once()
+    mp.subscribed_users.add.assert_not_called()
+    mp.save.assert_called_once()
     assert type(response) == http.response.HttpResponseRedirect
     assert response.status_code == 302
 
 
 def test_post_create_view_get_success_url(mocker, postcreate_view, mock_post):
-    mock_post.id = 1
-    mock_post.slug = "1000000Bananas"
-    response = postcreate_view.get_success_url(mock_post)
+    mp = mock_post()
+    mp.slug = "1000000Bananas"
+    response = postcreate_view.get_success_url(mp)
     assert response == "/post/1/1000000Bananas/"
