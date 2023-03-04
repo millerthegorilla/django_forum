@@ -66,3 +66,4 @@ django_messages @ git+https://github.com/millerthegorilla/django_messages@main#e
 safe_imagefield @ git+https://github.com/millerthegorilla/safe_imagefield@main#egg=safe_imagefield
 wheel
 django-mock-queries
+pytest-factoryboy

@@ -21,9 +21,16 @@ fake = Faker()
 
 POST_TEXT = "ipsum lorum dolem est"
 POST_TITLE = "This is a test title"
+COMMENT_TEXT = "this is a test comment"
 USERNAME = "bob123"
 DISPLAYNAME = "bob-holnes"
 NUM_POSTS = 10
+MSG_TYPE = ""
+
+
+@pytest.fixture()
+def comment_text():
+    return COMMENT_TEXT
 
 
 @pytest.fixture()
@@ -47,8 +54,23 @@ def post_update():
 
 
 @pytest.fixture()
+def post_delete():
+    return forum_post_views.PostDelete()
+
+
+@pytest.fixture()
+def comment_create():
+    return forum_post_views.CreateComment()
+
+
+@pytest.fixture()
 def render_mock(mocker):
     return mocker.patch("django_forum.views_forum_post.shortcuts.render")
+
+
+@pytest.fixture()
+def redirect_mock(mocker):
+    return mocker.patch("django_forum.views_forum_post.shortcuts.redirect")
 
 
 @pytest.fixture()
@@ -60,53 +82,51 @@ def page_obj(mocker):
 
 
 @dataclass
-class PostDetails:
+class MsgDetails:
     pk: int
     username: str
-    display_name: str
     text: str
-    title: str
     slug: str
     created_at: utils.timezone
     get_absolute_url: str
+    display_name: str
+    title: str
 
 
-def post_details():
+def msg_details():
     post_num = 1
     while post_num < NUM_POSTS:
         if post_num == 1:
+            text = POST_TEXT
+            title = POST_TITLE
             slug = defaultfilters.slugify(
                 POST_TEXT[:10]
                 + "-"
                 + str(utils.dateformat.format(utils.timezone.now(), "Y-m-d H:i:s"))
             )
-            yield PostDetails(
-                pk=post_num,
-                username=USERNAME,
-                display_name=DISPLAYNAME,
-                text=POST_TEXT,
-                title=POST_TITLE,
-                created_at=utils.timezone.now(),
-                slug=slug,
-                get_absolute_url="http://test1.com/" + str(post_num) + "/" + slug,
-            )
+            username = USERNAME
+            display_name = DISPLAYNAME
         else:
-            txt = fake.sentence(nb_words=30)
+            text = fake.sentence(nb_words=30)
+            title = fake.sentence(nb_words=4)
             slug = defaultfilters.slugify(
-                txt[:10]
+                text[:10]
                 + "-"
                 + str(utils.dateformat.format(utils.timezone.now(), "Y-m-d H:i:s"))
             )
-            yield PostDetails(
-                pk=post_num,
-                username=fake.user_name(),
-                display_name=fake.user_name(),
-                text=txt,
-                title=fake.sentence(nb_words=10),
-                created_at=fake.date_time(),
-                slug=slug,
-                get_absolute_url=fake.url() + str(post_num) + "/" + slug,
-            )
+            username = (fake.user_name(),)
+            display_name = (fake.user_name(),)
+        pd = MsgDetails(
+            pk=post_num,
+            username=username,
+            text=text,
+            created_at=utils.timezone.now(),
+            slug=slug,
+            get_absolute_url="http://test1.com/" + str(post_num) + "/" + slug,
+            title=title,
+            display_name=display_name,
+        )
+        yield pd
         post_num += 1
 
 
@@ -116,6 +136,14 @@ class PostFactory(factory.Factory):
 
 
 register(PostFactory)
+
+
+class CommentFactory(factory.Factory):
+    class Meta:
+        model = forum_models.Comment
+
+
+register(CommentFactory)
 
 
 @pytest.fixture()
@@ -135,14 +163,14 @@ def mock_user(mocker):
 
 
 @pytest.fixture()
-def mock_post(mocker, mock_user, post_factory):
-    post_gen = post_details()
+def mock_post(request, mocker, mock_user, post_factory):
+    post_gen = msg_details()
 
-    def mock_post():
+    def mock_message():
         pd = next(post_gen)
         mock_user.username = pd.username
         mock_user.profile.display_name.return_value = pd.display_name
-        m_post = post_factory(
+        m_msg = post_factory(
             author=mock_user,
             text=pd.text,
             title=pd.title,
@@ -150,7 +178,30 @@ def mock_post(mocker, mock_user, post_factory):
             slug=pd.slug,
             pk=pd.pk,
         )
-        m_post.get_absolute_url = mocker.Mock(return_value=pd.get_absolute_url)
-        return m_post
+        m_msg.get_absolute_url = mocker.Mock(return_value=pd.get_absolute_url)
 
-    return mock_post
+        return m_msg
+
+    return mock_message
+
+
+@pytest.fixture()
+def mock_comment(request, mocker, mock_user, comment_factory):
+    post_gen = msg_details()
+
+    def mock_message():
+        pd = next(post_gen)
+        mock_user.username = pd.username
+        mock_user.profile.display_name.return_value = pd.display_name
+        m_msg = comment_factory(
+            author=mock_user,
+            text=pd.text,
+            created_at=pd.created_at,
+            slug=pd.slug,
+            pk=pd.pk,
+        )
+        m_msg.get_absolute_url = mocker.Mock(return_value=pd.get_absolute_url)
+
+        return m_msg
+
+    return mock_message

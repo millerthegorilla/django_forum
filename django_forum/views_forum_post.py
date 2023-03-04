@@ -253,7 +253,6 @@ class PostUpdate(mixins.LoginRequiredMixin, generic.UpdateView):
             "text_errors": form.errors.get("text", ""),
             "title_errors": form.errors.get("title", ""),
         }
-        breakpoint()
         context_data["post"] = self.object
         context_data["comments"] = (
             self.object.comments.all()
@@ -271,7 +270,7 @@ class PostUpdate(mixins.LoginRequiredMixin, generic.UpdateView):
         return http.JsonResponse({"url": post.get_absolute_url()}, status=200)
 
 
-class DeletePost(mixins.LoginRequiredMixin, views.View):
+class PostDelete(mixins.LoginRequiredMixin, views.View):
     http_method_names = ["post"]
     model = forum_models.Post
     a_name = "django_forum"
@@ -295,21 +294,6 @@ class CreateComment(mixins.LoginRequiredMixin, views.generic.CreateView):
     form_class: forum_forms.Comment = forum_forms.Comment
     post_form_class: forum_forms.Post = forum_forms.Post
     template_name = "django_forum/posts_and_comments/forum_post_detail.html"
-
-    def form_invalid(self, form):
-        post = self.post_model.objects.get(
-            pk=self.kwargs["pk"], slug=self.kwargs["slug"]
-        )
-        context_data = {"form": self.post_form_class(instance=post)}
-        context_data["post"] = post
-        context_data["comments"] = (
-            post.comments.all()
-            .select_related("author")
-            .select_related("author__profile")
-            .select_related("author__profile__avatar")
-        )
-        context_data["comment_form"] = form
-        return shortcuts.render(self.request, self.template_name, context_data)
 
     def form_valid(self, form):
         comment = form.save(commit=False)
@@ -344,6 +328,21 @@ class CreateComment(mixins.LoginRequiredMixin, views.generic.CreateView):
             ),
             permanent=True,
         )
+
+    def form_invalid(self, form):
+        post = self.post_model.objects.get(
+            pk=self.kwargs["pk"], slug=self.kwargs["slug"]
+        )
+        context_data = {"form": self.post_form_class(instance=post)}
+        context_data["post"] = post
+        context_data["comments"] = (
+            post.comments.all()
+            .select_related("author")
+            .select_related("author__profile")
+            .select_related("author__profile__avatar")
+        )
+        context_data["comment_form"] = form
+        return shortcuts.render(self.request, self.template_name, context_data)
 
 
 class DeleteComment(mixins.LoginRequiredMixin, views.generic.DeleteView):

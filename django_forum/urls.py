@@ -24,7 +24,7 @@ postview_patterns = [
     ),
     urls.path(
         "delete_post/<int:pk>/<slug:slug>/",
-        forum_post_views.DeletePost.as_view(),
+        forum_post_views.PostDelete.as_view(),
         name="post_delete",
     ),
     urls.path(

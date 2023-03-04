@@ -46,7 +46,7 @@
         path: ./dockerfile_python
         build:
           # cache: false
-          extra_args: "-f './dockerfile_python/Dockerfile_Run'"
+          extra_args: "-f './dockerfile_python/Dockerfile_Test'"
         state: present
       register: build_output
     - debug: var=build_output
