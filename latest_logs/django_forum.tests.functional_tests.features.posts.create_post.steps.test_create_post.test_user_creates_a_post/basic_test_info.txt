@@ -1,0 +1,23 @@
+django_forum/tests/functional_tests/features/posts/create_post/steps/test_create_post.py::py::test_user_creates_a_post
+--------------------------------------------------------------------
+Last Page: http://localhost:43149/create_post/
+ Duration: 11.74s
+  Browser: Chrome 109.0.5414.119 / headless2
+   Driver: chromedriver 109.0.5414.74
+Timestamp: 1677849393  (Unix Timestamp)
+     Date: Friday, 3 March 2023
+     Time: 1:16:33 PM  (UTC, UTC+00)
+--------------------------------------------------------------------
+Traceback:   File "/home/artisan/django_venv/lib/python3.11/site-packages/pytest_bdd/scenario.py", line 221, in scenario_wrapper
+    _execute_scenario(feature, scenario, request)
+  File "/home/artisan/django_venv/lib/python3.11/site-packages/pytest_bdd/scenario.py", line 193, in _execute_scenario
+    _execute_step_function(request, scenario, step, step_func_context)
+  File "/home/artisan/django_venv/lib/python3.11/site-packages/pytest_bdd/scenario.py", line 159, in _execute_step_function
+    return_value = call_fixture_func(fixturefunc=context.step_func, request=request, kwargs=kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ceramic_isles_test/django_forum/tests/functional_tests/features/posts/create_post/steps/test_create_post.py", line 34, in user_is_taken_to_post_detail_page
+    assert "Post" in page.get_page_title()
+
+Exception: %sassert 'Post' in 'RecursionError at /create_post/'
+ +  where 'RecursionError at /create_post/' = <bound method BaseCase.get_page_title of <seleniumbase.plugins.pytest_plugin.sb.<locals>.BaseClass testMethod=base_method>>()
+ +    where <bound method BaseCase.get_page_title of <seleniumbase.plugins.pytest_plugin.sb.<locals>.BaseClass testMethod=base_method>> = <seleniumbase.plugins.pytest_plugin.sb.<locals>.BaseClass testMethod=base_method>.get_page_title

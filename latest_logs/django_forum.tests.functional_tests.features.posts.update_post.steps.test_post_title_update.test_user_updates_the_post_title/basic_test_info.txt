@@ -1,0 +1,23 @@
+django_forum/tests/functional_tests/features/posts/update_post/steps/test_post_title_update.py::py::test_user_updates_the_post_title
+--------------------------------------------------------------------
+Last Page: http://localhost:43149/post/8/ipsum-loru-2023-03-03-131535/
+ Duration: 7.30s
+  Browser: Chrome 109.0.5414.119 / headless2
+   Driver: chromedriver 109.0.5414.74
+Timestamp: 1677849339  (Unix Timestamp)
+     Date: Friday, 3 March 2023
+     Time: 1:15:39 PM  (UTC, UTC+00)
+--------------------------------------------------------------------
+Traceback:   File "/home/artisan/django_venv/lib/python3.11/site-packages/pytest_bdd/scenario.py", line 221, in scenario_wrapper
+    _execute_scenario(feature, scenario, request)
+  File "/home/artisan/django_venv/lib/python3.11/site-packages/pytest_bdd/scenario.py", line 193, in _execute_scenario
+    _execute_step_function(request, scenario, step, step_func_context)
+  File "/home/artisan/django_venv/lib/python3.11/site-packages/pytest_bdd/scenario.py", line 159, in _execute_step_function
+    return_value = call_fixture_func(fixturefunc=context.step_func, request=request, kwargs=kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ceramic_isles_test/django_forum/tests/functional_tests/features/posts/update_post/steps/test_post_title_update.py", line 23, in update_post_title_is_saved
+    assert post.title == UPDATED_TITLE_TEXT
+
+Exception: %sassert 'Title' == 'the first post title edited'
+  - the first post title edited
+  + Title

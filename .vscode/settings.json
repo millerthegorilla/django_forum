@@ -1,0 +1,8 @@
+{
+    "window.zoomLevel": 0.6,
+    "editor.formatOnSave": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestPath": "",
+    "python.testing.cwd": "/opt/ceramic_isles_test/tests"
+}
