@@ -1,8 +1,4 @@
-import pytest
-
-from pytest_bdd import given, scenarios, then, when
-
-from django.core import mail
+from pytest_bdd import scenarios, then, when
 
 from django_forum import models as forum_models
 
@@ -35,4 +31,4 @@ def moderation_message_is_visible(page):
 @then("comment has a moderation date")
 def comment_has_moderation_data():
     comment = forum_models.Comment.objects.first()
-    assert comment.moderation_date != None
+    assert comment.moderation_date is not None

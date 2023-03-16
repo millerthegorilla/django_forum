@@ -1,6 +1,7 @@
+"""
+    _summary_
+"""
 from django import urls
-from django.conf import settings
-from django.conf.urls.static import static
 
 from . import views as forum_views
 from . import views_forum_post as forum_post_views
@@ -28,7 +29,9 @@ postview_patterns = [
         name="post_delete",
     ),
     urls.path(
-        "report_post/", forum_post_views.ReportPost.as_view(), name="post_report"
+        "report_post/<int:pk>/<slug:slug>/",
+        forum_post_views.ReportPost.as_view(),
+        name="post_report",
     ),
     urls.path(
         "create_comment/<int:pk>/<slug:slug>/",
@@ -46,7 +49,7 @@ postview_patterns = [
         name="comment_update",
     ),
     urls.path(
-        "report_comment/",
+        "report_comment/<int:pk>/<slug:slug>/",
         forum_post_views.ReportComment.as_view(),
         name="comment_report",
     ),

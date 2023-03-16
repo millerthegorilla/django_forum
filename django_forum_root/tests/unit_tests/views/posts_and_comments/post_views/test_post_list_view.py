@@ -1,15 +1,15 @@
 import re
-from pytest_factoryboy import register
-import pytest
 import uuid
-from django_mock_queries.query import MockSet, MockModel
 
-from django import http, utils, conf
+import pytest
+from django import conf, http, utils
 from django.template.defaultfilters import date
+from django_mock_queries.query import MockModel, MockSet
+from pytest_factoryboy import register
 
-from django_forum import views_forum_post as forum_post_views
-from django_forum import models as forum_models
 from django_forum import forms as forum_forms
+from django_forum import models as forum_models
+from django_forum import views_forum_post as forum_post_views
 
 
 def test_post_list_view_get_with_search(
@@ -42,7 +42,7 @@ def test_post_list_view_get_with_search(
         {}
     )
 
-    response = postlist_view.get(request)
+    postlist_view.get(request)
 
     pls.return_value.is_valid.assert_called_once()
     m_document_post.search.assert_called_once()
@@ -66,7 +66,7 @@ def test_post_list_view_get_no_search(
     pls = mocker.patch("django_forum.forms.PostListSearch", autospec=True)
     pls.return_value.is_valid.return_value = False
     request = rf.get("/posts/")
-    response = postlist_view.get(request)
+    postlist_view.get(request)
     pls.return_value.is_valid.assert_called_once()
     render_mock.assert_called_once_with(
         request,

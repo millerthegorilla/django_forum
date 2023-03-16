@@ -67,3 +67,4 @@ safe_imagefield @ git+https://github.com/millerthegorilla/safe_imagefield@main#e
 wheel
 django-mock-queries
 pytest-factoryboy
+pylint-django

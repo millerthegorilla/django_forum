@@ -1,21 +1,17 @@
 from dataclasses import dataclass
-import pytest
-import factory
-from pytest_factoryboy import register
-from faker import Faker
 
+import django
+import factory
+import pytest
 from django import utils
 from django.db.models import base as django_db_base
 from django.template import defaultfilters
-
+from faker import Faker
+from pytest_factoryboy import register
 from safe_imagefield.models import SafeImageField
+
 from django_forum import models as forum_models
 from django_forum import views_forum_post as forum_post_views
-
-
-# @pytest.fixture()
-# def get_post_request_data():
-#     return {"title": ["first post"], "text": ["<p>first post again</p>"]}
 
 fake = Faker()
 
@@ -64,8 +60,23 @@ def comment_create():
 
 
 @pytest.fixture()
-def render_mock(mocker):
-    return mocker.patch("django_forum.views_forum_post.shortcuts.render")
+def comment_delete():
+    return forum_post_views.DeleteComment()
+
+
+@pytest.fixture()
+def comment_update():
+    return forum_post_views.UpdateComment()
+
+
+@pytest.fixture()
+def comment_report():
+    return forum_post_views.ReportComment()
+
+
+@pytest.fixture()
+def post_report():
+    return forum_post_views.ReportPost()
 
 
 @pytest.fixture()
@@ -147,31 +158,16 @@ register(CommentFactory)
 
 
 @pytest.fixture()
-def mock_user(mocker):
-    mock_profile = mocker.patch("django_forum.models.ForumProfile", autospec=True)
-    mock_avatar = mocker.patch("django_forum.models.Avatar", autospec=True)
-    mock_profile.return_value.avatar = mock_avatar
-    mock_image_file = mocker.Mock(spec=SafeImageField)
-    mock_user = mocker.patch("django.contrib.auth.models.User", autospec=True)
-    mock_user._state = django_db_base.ModelState()
-    type(mock_avatar).image_file = mocker.PropertyMock(return_value=mock_image_file)
-    type(mock_profile).avatar = mocker.PropertyMock(return_value=mock_avatar)
-    type(mock_profile).display_name = mocker.PropertyMock()
-    type(mock_user).profile = mocker.PropertyMock(return_value=mock_profile)
-
-    return mock_user
-
-
-@pytest.fixture()
 def mock_post(request, mocker, mock_user, post_factory):
     post_gen = msg_details()
 
     def mock_message():
         pd = next(post_gen)
-        mock_user.username = pd.username
-        mock_user.profile.display_name.return_value = pd.display_name
+        m_u = mock_user()
+        m_u.username = pd.username
+        m_u.profile.display_name = pd.display_name
         m_msg = post_factory(
-            author=mock_user,
+            author=m_u,
             text=pd.text,
             title=pd.title,
             created_at=pd.created_at,
@@ -186,19 +182,19 @@ def mock_post(request, mocker, mock_user, post_factory):
 
 
 @pytest.fixture()
-def mock_comment(request, mocker, mock_user, comment_factory):
+def mock_comment(request, mock_post, mocker, mock_user, comment_factory):
     post_gen = msg_details()
 
     def mock_message():
         pd = next(post_gen)
-        mock_user.username = pd.username
-        mock_user.profile.display_name.return_value = pd.display_name
+        m_u = mock_user()
         m_msg = comment_factory(
-            author=mock_user,
+            author=m_u,
             text=pd.text,
             created_at=pd.created_at,
             slug=pd.slug,
             pk=pd.pk,
+            post_fk=mock_post(),
         )
         m_msg.get_absolute_url = mocker.Mock(return_value=pd.get_absolute_url)
 

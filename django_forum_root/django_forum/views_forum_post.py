@@ -1,32 +1,21 @@
-import elasticsearch_dsl
-import html
 import logging
-import uuid
 import typing
-import bleach
+import uuid
 
+import elasticsearch_dsl
+from django import conf, http, shortcuts, urls, utils, views
+from django.apps import apps
+from django.contrib.auth import get_user_model, mixins
+from django.core import mail
+from django.core import paginator as pagination
+from django.template import defaultfilters
+from django.views import generic
+from django.views.decorators import cache
 from django_q import tasks
 
-from django import http, urls, shortcuts, views, utils, conf
-from django.apps import apps
-from django.core import mail
-from django.core.cache import cache as template_cache
-from django.core import paginator as pagination
-from django.core.cache.utils import make_template_fragment_key
-from django.contrib.auth import get_user_model
-from django.contrib.auth import mixins
-from django.template import defaultfilters
-from django.views.decorators import cache
-from django.views import generic
-from django.utils import safestring
-
-
-from django_messages import views as messages_views
-from django_messages import forms as messages_forms
-
 from . import documents as forum_documents
-from . import models as forum_models
 from . import forms as forum_forms
+from . import models as forum_models
 
 logger = logging.getLogger("django_artisan")
 
@@ -54,18 +43,10 @@ class PostCreate(mixins.LoginRequiredMixin, generic.edit.CreateView):
     template_name = "django_forum/posts_and_comments/forum_post_create_form.html"
     form_class = forum_forms.Post
 
-    def get_context_data(self, form: forum_forms.Post = None):
-        if form and "text" in form.errors.keys():
-            form.errors["text"] = [
-                "A post needs some text! - you tried to submit a blank value...  Try again :)"
-            ]
-        else:
-            form = self.form_class()
-        return {"form": form}
-
     def form_valid(self, form: forum_forms.Post) -> http.HttpResponseRedirect:
         post = form.save(commit=False)
         post.author = self.request.user
+        post.save()
         if "subscribe" in self.request.POST:
             post.subscribed_users.add(self.request.user)
         post.save()
@@ -104,7 +85,6 @@ class PostList(mixins.LoginRequiredMixin, generic.list.ListView):
         """
         # site = site_models.Site.objects.get_current()
         search = 0
-        p_c = None
         is_a_search = False
         form = forum_forms.PostListSearch(request.GET)
         if form.is_valid():
@@ -202,7 +182,8 @@ class PostView(mixins.LoginRequiredMixin, generic.DetailView):
         context_data["site_url"] = (
             (request.scheme or "https") + "://" + conf.settings.SITE_DOMAIN
         )
-        context_data["comment_form"] = self.comment_form_class()  # type: ignore
+        # type: ignore
+        context_data["comment_form"] = self.comment_form_class()
         context_data["subscribed"] = (
             context_data["post"]
             .subscribed_users.filter(username=self.request.user.username)
@@ -282,8 +263,8 @@ class PostDelete(mixins.LoginRequiredMixin, views.View):
         if post.author == request.user:
             try:
                 post.delete()
-            except self.model.DoesNotExist:
-                logger.warn("the model you tried to delete does not exist")
+            except self.model.DoesNotExist:  # pylint: disable=no-member
+                logger.warning("the model you tried to delete does not exist")
 
         return shortcuts.redirect(urls.reverse_lazy(self.a_name + ":post_list_view"))
 
@@ -294,6 +275,7 @@ class CreateComment(mixins.LoginRequiredMixin, views.generic.CreateView):
     form_class: forum_forms.Comment = forum_forms.Comment
     post_form_class: forum_forms.Post = forum_forms.Post
     template_name = "django_forum/posts_and_comments/forum_post_detail.html"
+    query_pk_and_slug = True
 
     def form_valid(self, form):
         comment = form.save(commit=False)
@@ -330,19 +312,24 @@ class CreateComment(mixins.LoginRequiredMixin, views.generic.CreateView):
         )
 
     def form_invalid(self, form):
+        context = self.get_context_data()
+        context["comment_form"] = form
+        return shortcuts.render(self.request, self.template_name, context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         post = self.post_model.objects.get(
             pk=self.kwargs["pk"], slug=self.kwargs["slug"]
         )
-        context_data = {"form": self.post_form_class(instance=post)}
-        context_data["post"] = post
-        context_data["comments"] = (
+        context = {"form": self.post_form_class(user=self.request.user)}
+        context["post"] = post
+        context["comments"] = (
             post.comments.all()
             .select_related("author")
             .select_related("author__profile")
             .select_related("author__profile__avatar")
         )
-        context_data["comment_form"] = form
-        return shortcuts.render(self.request, self.template_name, context_data)
+        return context
 
 
 class DeleteComment(mixins.LoginRequiredMixin, views.generic.DeleteView):
@@ -363,44 +350,41 @@ class UpdateComment(mixins.LoginRequiredMixin, views.generic.UpdateView):
     form_class = forum_forms.Comment
 
 
-class ReportComment(mixins.LoginRequiredMixin, views.View):
+class ReportComment(mixins.LoginRequiredMixin, views.generic.UpdateView):
     http_method_names = ["post"]
-    comment_model = forum_models.Comment
-    post_model = forum_models.Post
-    a_name = "django_forum"
+    model = forum_models.Comment
+    task = "django_forum.tasks.send_mod_email"
 
-    def post(self, request: http.HttpRequest) -> http.HttpResponseRedirect:
-        comment = self.comment_model.objects.get(
-            id=request.POST["comment-id"], slug=request.POST["comment-slug"]
-        )
-        post = self.post_model.objects.get(
-            id=request.POST["post-id"], slug=request.POST["post-slug"]
-        )
-        if comment.author != request.user:
+    def post(self, *args, **kwargs) -> http.HttpResponseRedirect:
+        comment = self.get_object()
+        if comment.author != self.request.user:
             comment.moderation_date = utils.timezone.now()
             comment.save(update_fields=["moderation_date"])
-            tasks.async_task("django_forum.tasks.send_mod_mail", type="Comment")
+            tasks.async_task(self.task, type="Comment")
         return shortcuts.redirect(
-            urls.reverse_lazy(self.a_name + ":post_view", args=[post.id, post.slug])
+            urls.reverse_lazy(
+                self.model._meta.app_label + ":post_view",
+                args=[comment.post_fk.id, comment.post_fk.slug],
+            )
             + "#"
             + comment.slug
         )
 
 
-class ReportPost(mixins.LoginRequiredMixin, views.View):
+class ReportPost(mixins.LoginRequiredMixin, views.generic.UpdateView):
     http_method_names = ["post"]
-    post_model = forum_models.Post
-    a_name = "django_forum"
+    model = forum_models.Post
+    task = "django_forum.tasks.send_mod_mail"
 
-    def post(self, request: http.HttpRequest) -> http.HttpResponseRedirect:
-        post = self.post_model.objects.get(
-            id=request.POST["post-id"], slug=request.POST["post-slug"]
-        )
-        if post.author != request.user:
+    def post(self, *args, **kwargs) -> http.HttpResponseRedirect:
+        post = self.get_object()
+        if post.author != self.request.user:
             post.moderation_date = utils.timezone.now()
             post.commenting_locked = True
             post.save(update_fields=["moderation_date", "commenting_locked"])
-            tasks.async_task("django_forum.tasks.send_mod_mail", "Post")
+            tasks.async_task(self.task, type="Post")
         return shortcuts.redirect(
-            urls.reverse_lazy(self.a_name + ":post_view", args=[post.id, post.slug])
+            urls.reverse_lazy(
+                self.model._meta.app_label + ":post_view", args=[post.id, post.slug]
+            )
         )

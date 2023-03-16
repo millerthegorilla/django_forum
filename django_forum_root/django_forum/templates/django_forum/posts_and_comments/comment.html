@@ -26,7 +26,6 @@
                             <div id="comment-form-buttons-{{ forloop.counter }}" class="comment-form-buttons">
                             	<form method="post" action="{% url 'django_forum:comment_update' comment.id comment.slug %}" id="comment-update-form-{{ forloop.counter }}" class="comment-update-form">
                             		{% csrf_token %}
-                            		<input type="hidden" name="author" value="{{ user }}">
                             		<div class="row">
                             			<div class="col-auto">
                                     		<textarea id="comment-textarea-{{ forloop.counter }}" form="comment-update-form-{{ forloop.counter }}" wrap="hard" rows="6" cols="60" class="comment-textarea" name="text"></textarea>
@@ -42,14 +41,10 @@
                             </div>
                             {% elif not comment.moderation_date %}
                             <div class="ms-auto">
-			                    <form method="post" action="{% url 'django_forum:comment_report' %}" id="form-report-comment">
+			                    <form method="post" action="{% url 'django_forum:comment_report' comment.id comment.slug %}" id="form-report-comment">
 			                    	{% csrf_token %}
 			                    	<div class="tinfo">
-			                        <input id="post-id" type="hidden" name="post-id" value="{{ post.id }}">
-        							<input id="post-slug" type="hidden" name="post-slug" value="{{ post.slug }}">
-        							<input id="comment-slug" type="hidden" name="comment-slug" value="{{ comment.slug }}">
-        							<input id="comment-id" type="hidden" name="comment-id" value="{{ comment.id }}">
-			                            <a class="report-comment text-warning" href="#">Report Comment for Moderation</a>
+			                        	<a class="report-comment text-warning" href="#">Report Comment for Moderation</a>
 			                    	</div>
 			                    </form>
 			                </div>

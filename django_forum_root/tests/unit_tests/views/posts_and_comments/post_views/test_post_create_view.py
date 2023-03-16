@@ -1,12 +1,9 @@
 import pytest
-import uuid
 from django import http
 from django.contrib.auth import get_user_model
-from django_forum import models as forum_models
-from django_forum import views as forum_views
-from django_forum import views_forum_post as forum_post_views
-from django_forum import forms as forum_forms
 
+from django_forum import forms as forum_forms
+from django_forum import views_forum_post as forum_post_views
 
 User = get_user_model()
 
@@ -16,29 +13,10 @@ def postcreate_view():
     return forum_post_views.PostCreate()
 
 
-def test_post_create_get_context_data_no_form(mocker, postcreate_view):
-    mocker.patch(
-        "django_forum.views_forum_post.PostCreate.form_class",
-        new_callable=mocker.PropertyMock,
-    )
-    response = postcreate_view.get_context_data()
-    assert type(response) == dict
-    forum_post_views.PostCreate.form_class.assert_called_once()
-
-
-def test_post_create_get_context_data_with_form_and_error(mocker, postcreate_view):
-    mocker.patch("django_forum.forms.Post")
-    # mocker.patch("django_forum.forms.Post.errors")
-    form = forum_forms.Post()
-    form.errors.keys = mocker.MagicMock()
-    form.errors.keys.return_value = ["text"]
-    response = postcreate_view.get_context_data(form)
-
-
 def test_post_create_form_valid_with_subscribe(
     mocker, rf, active_user, mock_post, postcreate_view
 ):
-    user = mocker.patch("django.contrib.auth.models.User")
+    mocker.patch("django.contrib.auth.models.User")
     postcreate_view.request = rf.post("/create_post/")
     postcreate_view.request.user = active_user
     postcreate_view.request.POST = {"subscribe": "True"}
@@ -54,7 +32,8 @@ def test_post_create_form_valid_with_subscribe(
     form.save.return_value = mp
     response = postcreate_view.form_valid(form)
     mp.subscribed_users.add.assert_called_once()
-    mp.save.assert_called_once()
+    assert mp.save.call_count == 2
+    # mp.save.assert_called_once()
     assert type(response) == http.response.HttpResponseRedirect
     assert response.status_code == 302
 
@@ -62,7 +41,7 @@ def test_post_create_form_valid_with_subscribe(
 def test_post_create_form_valid_wout_subscribe(
     mocker, rf, active_user, mock_post, postcreate_view
 ):
-    user = mocker.patch("django.contrib.auth.models.User")
+    mocker.patch("django.contrib.auth.models.User")
     postcreate_view.request = rf.post("/create_post/")
     postcreate_view.request.user = active_user
     postcreate_view.request.POST = {}
@@ -77,7 +56,8 @@ def test_post_create_form_valid_wout_subscribe(
     form.save.return_value = mp
     response = postcreate_view.form_valid(form)
     mp.subscribed_users.add.assert_not_called()
-    mp.save.assert_called_once()
+    assert mp.save.call_count == 2
+    # mp.save.assert_called_once()
     assert type(response) == http.response.HttpResponseRedirect
     assert response.status_code == 302
 

@@ -4,8 +4,8 @@ from django import conf, http, urls, utils
 from django.apps import apps
 from django.contrib import admin, messages
 from django.db import models as db_models
-
 from django_messages import soft_deletion
+from django_profile import models as profile_models
 
 from . import models as forum_models
 
@@ -18,7 +18,7 @@ except AttributeError:
 if abs_post:
     try:
         post_model = apps.get_model(*conf.settings.POST_MODEL.split("."))
-    except:
+    except Exception:
         post_model = forum_models.Post
 else:
     post_model = forum_models.Post
@@ -33,7 +33,7 @@ if not abs_comment:
 else:
     try:
         comment_model = apps.get_model(*conf.settings.COMMENT_MODEL.split("."))
-    except:
+    except Exception:
         comment_model = forum_models.Comment
 try:
     abs_post = conf.settings.ABSTRACTPOST
@@ -48,6 +48,14 @@ else:
 
 @admin.register(post_model)
 class Post(soft_deletion.Admin):
+    """Post admin class
+
+    Args:
+        soft_deletion.Admin: an abstract class from django_messages that
+                             allows posts etc to be soft deleted, and hard
+                             deleted according to a schedule set in settings.py
+    """
+
     list_display = (
         "commenting_locked",
         "pinned",
@@ -89,8 +97,8 @@ class Post(soft_deletion.Admin):
             try:
                 q.save(update_fields=["moderation_date", "commenting_locked"])
                 idx += 1
-            except Exception as e:
-                logger.error("Error approving moderation : {0}".format(e))
+            except Exception as _e:
+                logger.error("Error approving moderation : {0}".format(_e))
 
         self.message_user(
             request,
@@ -106,6 +114,12 @@ class Post(soft_deletion.Admin):
     def lock_commenting(
         self, request: http.HttpRequest, queryset: db_models.QuerySet
     ) -> None:
+        """_summary_
+
+        Args:
+            request (http.HttpRequest): _description_
+            queryset (db_models.QuerySet): _description_
+        """
         idx = 0
         for q in queryset:
             q.commenting_locked = True
@@ -219,7 +233,7 @@ except AttributeError:
     abs_forum_profile = False
 if not abs_forum_profile:
     if not conf.settings.ABSTRACTPROFILE:
-        admin.site.unregister(forum_models.Profile)
+        admin.site.unregister(profile_models.Profile)
 
     @admin.register(forum_models.ForumProfile)
     class ForumProfile(admin.ModelAdmin):
@@ -244,7 +258,7 @@ if not abs_forum_profile:
 
 @admin.register(comment_model)
 class Comment(soft_deletion.Admin):
-    # fields = ('moderation', 'active', 'author', 'title', 'text', 'created_at', 'deleted_at', 'user_profile')
+    # fields = ('moderation', 'active', 'author', 'title', 'text', 'created_at', 'deleted_at', 'user_profile') # noqa: E501
     # fieldsets = [
     #     ('Moderation', {'fields': ['moderation']}),
     #     ('Active', {'fields': ['active']}),

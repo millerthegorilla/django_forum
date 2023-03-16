@@ -1,24 +1,23 @@
-import os
 import logging
+import os
 import random
 from typing import Union
-from random_username import generate
 
-from sorl import thumbnail
-from safe_imagefield import models as safe_image_models
-
-from django import urls, conf, dispatch
+from django import conf, dispatch, urls
+from django.contrib.auth import get_user_model
 from django.core import exceptions
 from django.db import models as db_models
 from django.db.models import signals
-from django.contrib.auth import get_user_model
-
-from django_profile import models as forum_models
 from django_messages import models as messages_models
+from django_profile import models as forum_models
+from random_username import generate
+from safe_imagefield import models as safe_image_models
+from sorl import thumbnail
 
 logger = logging.getLogger("django_artisan")
 
 User = get_user_model()
+
 
 # START PROFILE
 # helper functions

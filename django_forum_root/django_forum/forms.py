@@ -2,23 +2,19 @@ import logging
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
 
-from crispy_forms import helper, layout
 from crispy_bootstrap5 import bootstrap5
-from tinymce.widgets import TinyMCE
-
-from django import forms, utils, shortcuts
+from crispy_forms import helper, layout
+from django import forms, shortcuts, utils
+from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.conf import settings
-
-from django_profile import forms as forum_forms
+from django.forms import CharField
 from django_messages import forms as messages_forms
+from django_profile import forms as forum_forms
+from tinymce.widgets import TinyMCE
 
 from . import models as forum_models
-
-
-from django.forms import CharField
 
 logger = logging.getLogger(__name__)
 
@@ -161,11 +157,11 @@ class Post(messages_forms.Message):
         fields = ["text", "title"]
         widgets = {"text": TinyMCE()}
 
-    def __init__(self, user: User = None, *args, **kwargs) -> None:
+    def __init__(self, *args, user: User = None, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         try:
             post = self.Meta.model.objects.get(author=user)
-        except self.Meta.model.DoesNotExist:
+        except self.Meta.model.DoesNotExist:  # pylint: disable=no-member
             post = None
         checked_string = ""
         if post and post.subscribed_users.filter(username=user.username).count():
@@ -208,9 +204,14 @@ class Comment(messages_forms.Message):
         fields = messages_forms.Message.Meta.fields
 
     def __init__(self, *args, **kwargs) -> None:
+        # get user from uername stored in author field
         if "data" in kwargs:
             temp = kwargs["data"].copy()
-            temp["author"] = User.objects.get(username=kwargs["data"]["author"])
+            # avoid db access if possible
+            if "instance" in kwargs and kwargs["instance"] is not None:
+                temp["author"] = kwargs["instance"].author
+            else:
+                temp["author"] = User.objects.get(username=kwargs["data"]["author"])
             kwargs["data"] = temp
         super().__init__(*args, **kwargs)
         # self.auto_id = False

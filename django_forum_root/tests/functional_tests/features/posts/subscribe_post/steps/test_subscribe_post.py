@@ -1,9 +1,8 @@
 import pytest
-
-from pytest_bdd import given, scenarios, then, when
+from django_q import models as q_models
+from pytest_bdd import scenarios, then, when
 
 from django_forum import models as forum_models
-from django_q import models as q_models
 
 scenarios("../subscribe_post.feature")
 

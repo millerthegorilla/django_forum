@@ -1,0 +1,15 @@
+{
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [
+        "--enable=W0614",
+        "--load-plugins='pylint_django",
+        "--django-settings-module=django_forum_project.settings'",
+    ]
+}

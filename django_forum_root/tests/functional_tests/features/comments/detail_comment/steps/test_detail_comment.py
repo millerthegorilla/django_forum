@@ -1,6 +1,6 @@
 import pytest
+from pytest_bdd import scenarios, then
 
-from pytest_bdd import given, scenarios, then, when
 from django_forum import models as forum_models
 
 scenarios("../detail_comment.feature")
