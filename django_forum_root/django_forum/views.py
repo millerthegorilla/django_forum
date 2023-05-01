@@ -56,7 +56,7 @@ class ForumProfile(profile_views.ProfileUpdate):
             if not len(user_form.errors["username"]):
                 del user_form.errors["username"]
 
-        if not form.errors and form.fields:
+        if len(form.errors) and len(form.fields):
             pf = request.user.profile
             for x in form.changed_data:
                 setattr(request.user.profile, x, form[x].value())
@@ -65,7 +65,7 @@ class ForumProfile(profile_views.ProfileUpdate):
                 form.changed_data.append("display_name")
             pf.save(update_fields=form.changed_data)
 
-        if not user_form.errors:
+        if not len(user_form.errors):
             uf = user_form.save(commit=False)
             uf.id = request.user.id
             uf.save(
@@ -74,7 +74,7 @@ class ForumProfile(profile_views.ProfileUpdate):
                 ]
             )
 
-        if user_form.errors or form.errors:
+        if len(user_form.errors) or len(form.errors):
             return shortcuts.render(
                 request,
                 self.template_name,

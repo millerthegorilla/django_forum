@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import django
 import pytest
+from django.forms import utils
 
 
 @pytest.fixture()
@@ -12,18 +13,21 @@ def setup_test(rf, mock_user, mocker, forum_profile):
     form = mocker.patch.object(forum_profile, "form_class")
     user_form = mocker.patch.object(forum_profile, "user_form_class")
     model = mocker.patch.object(forum_profile, "model")
-    model.objects.get.return_value.avatar = mocker.MagicMock()
+    avatar = mocker.MagicMock()
+    model.objects.get.return_value.avatar = avatar
     return (
         m_u,
         request,
         form,
         user_form,
         forum_profile,
+        model,
+        avatar,
     )
 
 
 def test_forum_profile_post_without_errors(setup_test, mocker):
-    m_u, request, form, user_form, forum_profile = setup_test
+    m_u, request, form, user_form, forum_profile, model = setup_test
     form.return_value.errors = user_form.return_value.errors = None
     response = forum_profile.post(request)
     assert type(response) == django.http.response.HttpResponseRedirect
@@ -32,10 +36,11 @@ def test_forum_profile_post_without_errors(setup_test, mocker):
 
 
 def test_forum_profile_with_username_errors(render_mock, setup_test, mocker):
-    m_u, request, form, user_form, forum_profile = setup_test
-    user_form.return_value.errors.__getitem__.return_value = (
-        django.forms.utils.ErrorList(["contains illegal characters"])
+    m_u, request, form, user_form, forum_profile, model, avatar = setup_test
+    user_form.return_value.errors = utils.ErrorDict(
+        {"username": utils.ErrorList(["contains illegal characters"])}
     )
-    mocker.patch("django_forum.views.len", return_value=1)
+    form.return_value.errors = utils.ErrorDict()
+    form.return_value.fields = {}
     response = forum_profile.post(request)
     pass
