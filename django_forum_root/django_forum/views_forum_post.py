@@ -209,7 +209,7 @@ def subscribe(request) -> http.JsonResponse:
         request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
         and request.method == "POST"
     ):
-        fp = post_model.objects.prefetch_related("subscribed_users").get(
+        fp = post_model.objects.select_related("subscribed_users").get(
             slug=request.POST["slug"]
         )
         if request.POST["data"] == "true":
