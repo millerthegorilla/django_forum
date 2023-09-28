@@ -44,9 +44,9 @@ setup(
     # List project dependencies:
     install_requires=[
         "django>=4.0.1",
-        "django_messages @ git+ssh://git@github.com/millerthegorilla/django_messages#egg=django_messages",  # noqa: E501
-        "django_profile @ git+ssh://git@github.com/millerthegorilla/django_profile#egg=django_profile",  # noqa: E501
-        "safe_imagefield @ git+ssh://git@github.com/millerthegorilla/safe_imagefield#egg==safe_imagefield",  # noqa: E501
+        #"django_messages @ git+ssh://git@github.com/millerthegorilla/django_messages#egg=django_messages",  # noqa: E501
+        #"django_profile @ git+ssh://git@github.com/millerthegorilla/django_profile#egg=django_profile",  # noqa: E501
+        #"safe_imagefield @ git+ssh://git@github.com/millerthegorilla/safe_imagefield#egg==safe_imagefield",  # noqa: E501
         "random_username>=1.0.2",
         "sorl-thumbnail>=12.9.0",
         "elasticsearch_dsl>=7.4.0",
